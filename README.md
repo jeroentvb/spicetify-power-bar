@@ -1,0 +1,1 @@
+# spicetify-power-bar
