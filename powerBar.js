@@ -42,11 +42,12 @@
     };
 
     /**
-     * @param { keyof HTMLElementTagNameMap } name
+     * @template { keyof HTMLElementTagNameMap } K
+     * @param { K } name
      * @param { { attributes?: Attribute[] | Attribute, classNames?: string[] | string, events?: CreateElementEvent[] | CreateElementEvent } } [props]
      * @param { HTMLElement[] | HTMLElement | Text } [children]
      * 
-     * @returns { HTMLElement }
+     * @returns { HTMLElementTagNameMap[K] }
      */
     function createElement(name, props, children) {
         const el = document.createElement(name);
@@ -89,19 +90,22 @@
             this.container = container;
             this.input = input;
             this.suggestions = suggestions;
+            this.searchWithDebounce = debounce(this.search).bind(this);
 
             document.body.appendChild(this.container);
 
-            document.addEventListener('keydown', ({ code, altKey }) => {
-                const activatePowerBar = code === 'Space' && altKey;
+            document.addEventListener('keydown', (e) => {
+                const activatePowerBar = e.code === 'Space' && e.altKey;
                 if (!activatePowerBar) return;
 
+                e.preventDefault();
                 this.togglePowerBar();
             });
 
             this.addCss();
         }
 
+        /** @returns { { container: HTMLDivElement, input: HTMLInputElement, suggestions: HTMLDivElement } } */
         createPowerBar() {
             const container = createElement(
                 'div',
@@ -125,7 +129,8 @@
                         type: 'text',
                         id: 'power-bar-search'
                     },
-                    events: { keydown: debounce(this.search).bind(this) }
+                    // @ts-ignore TODO fix types on events
+                    events: { keydown: this.onInput.bind(this) }
                 }
             );
             const suggestions = createElement(
@@ -138,6 +143,18 @@
             container.appendChild(wrapper);
 
             return { container, input, suggestions };
+        }
+
+        togglePowerBar() {
+            const activate = this.container.classList.contains('hidden');
+            this.container.classList.toggle('hidden');
+
+            if (activate) {
+                this.input.focus();
+                this.input.value = '';
+            } else {
+                this.deRenderSuggestions();
+            }
         }
 
         /** @param {suggestions} suggestions */
@@ -180,31 +197,39 @@
             this.suggestions.classList.add('has-suggestions');
         }
 
+        deRenderSuggestions() {
+            removeChildren(this.suggestions);
+            this.suggestions.classList.remove('has-suggestions');
+        }
+
         /** @param {KeyboardEvent & { target: HTMLInputElement }} event */
-        async search({ target: { value }, code, altKey }) {
+        onInput({ target: { value }, code, altKey }) {
             const powerBarKeyCombo = code === 'Space' && altKey;
             if (powerBarKeyCombo) return;
 
-            const query = value.trim().split(' ').join('+');
-            const res = await Spicetify.CosmosAsync.get(`https://api.spotify.com/v1/search?q=${query}&type=album,artist,playlist,track&limit=3&include_external=audio`);
-            
-            /** @type {suggestions} */
-            const suggestions = Object.entries(res).map(([key, value]) => ({ name: key, items: value.items }));
+            if (code === 'Escape') {
+                this.togglePowerBar();
+            }
 
-            this.renderSuggestions(suggestions);
+            const trimmedValue = value.trim();
+            if ( !trimmedValue || trimmedValue.length < 2) {
+                this.deRenderSuggestions();
+                return
+            }
+
+            this.searchWithDebounce();
         }
 
-        togglePowerBar() {
-            const activate = this.container.classList.contains('hidden');
-            this.container.classList.toggle('hidden');
+        async search() {
+            const query = this.input.value.trim().split(' ').join('+');
+            const res = await Spicetify.CosmosAsync.get(`https://api.spotify.com/v1/search?q=${query}&type=album,artist,playlist,track&limit=3&include_external=audio`)
+            
+            /** @type {suggestions} */
+            const suggestions = Object.entries(res)
+                .filter(([_key, value]) => value.items.length > 0)
+                .map(([key, value]) => ({ name: key, items: value.items }));
 
-            if (activate) {
-                this.input.focus();
-            } else {
-                console.log('remove');
-                removeChildren(this.suggestions);
-                this.suggestions.classList.remove('has-suggestions');
-            }
+            this.renderSuggestions(suggestions);
         }
 
         addCss() {
@@ -219,17 +244,19 @@
                     width: 100%;
                 }
 
+                #power-bar-wrapper {
+                    background-color: #fff;
+                    border-radius: 8px;
+                    box-shadow: rgba(0, 0, 0, 0.25) 0px 14px 28px, rgba(0, 0, 0, 0.22) 0px 10px 10px;
+                }
+
                 #power-bar-search {
                     border: none;
-                    border-radius: 8px;
                     width: 700px;
                     font-size: 2em;
                     padding: 8px 16px;
                     color: #000;
-                }
-
-                #power-bar~.has-suggestions {
-                    border-radius: 8px 8px 0 0;
+                    background-color: transparent;
                 }
 
                 #power-bar-suggestions.has-suggestions {
