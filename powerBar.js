@@ -8,7 +8,42 @@
 /// <reference path='./spicetify.d.ts' />
 
 /**
- * @typedef { { name: string, items: object[] }[] } suggestions
+ * @typedef { { type: string, items: SuggestionItem[] } } Suggestion
+ * @typedef { {
+ *  album?: any
+ *  artists?: {
+ *      external_urls: {spotify: string}
+ *      href: string
+ *      id: string
+ *      name: string
+ *      type: string
+ *      uri: string
+ *  }[]
+ *  owner?: {
+ *      display_name: string
+ *      external_urls: {spotify: string}
+ *      href: string
+ *      id: string
+ *      type: string
+ *      uri: string
+ *  }
+ *  available_markets: any[]
+ *  disc_number: number
+ *  duration_ms: number
+ *  explicit: boolean
+ *  external_ids: {isrc: string}
+ *  external_urls: {spotify: string}
+ *  href: string
+ *  id: string
+ *  is_local: boolean
+ *  name: string
+ *  popularity: number
+ *  preview_url: string
+ *  track_number: number
+ *  type: string
+ *  uri: string
+ * } } SuggestionItem
+ * 
  * @typedef { {[key: string]: string} } Attribute
  * @typedef { {[key in HTMLElementEventMap as string]: EventListener} } CreateElementEvent
  */
@@ -157,36 +192,68 @@
             }
         }
 
-        /** @param {suggestions} suggestions */
+        /** @param {Suggestion[]} suggestions */
         renderSuggestions(suggestions) {
             const suggestionsContainer = createElement(
                 'div',
                 { attributes: { id: 'suggestions-container' }},
-                suggestions.map(({ name, items }) => {
+                suggestions.map(({ type, items }) => {
                     return createElement(
                         'div',
                         { classNames: 'suggestions-category' },
                         [
                             createElement(
-                                'h3',
+                                'h2',
                                 null,
-                                document.createTextNode(name.charAt(0).toUpperCase() + name.slice(1))
+                                document.createTextNode(type.charAt(0).toUpperCase() + type.slice(1))
                             ),
-                            ...items.map(item => createElement(
-                                'a',
-                                {
-                                    classNames: 'suggestion-item',
-                                    events: {
-                                        click: (e) => {
-                                            const href = Spicetify.URI.from(item.uri).toURLPath(true);
-                                            Spicetify.Platform.History.push(href);
-
-                                            this.togglePowerBar();
-                                        }
-                                    }
-                                },
-                                document.createTextNode(item.name)
-                            )),
+                            ...items.map(item => {
+                                console.log(item)
+                                if (item.type === 'track' || item.type === 'album') {
+                                    return createElement(
+                                        'a',
+                                        {
+                                            classNames: ['suggestion-item', 'has-info'],
+                                            events: {
+                                                click: (e) => {
+                                                    const href = Spicetify.URI.from(item.uri).toURLPath(true);
+                                                    Spicetify.Platform.History.push(href);
+        
+                                                    this.togglePowerBar();
+                                                }
+                                            }
+                                        },
+                                        [
+                                            createElement(
+                                                'span',
+                                                null,
+                                                document.createTextNode(item.name)
+                                            ),
+                                            createElement(
+                                                'span',
+                                                null,
+                                                document.createTextNode(item.artists.map(artist => artist.name).join(', '))
+                                            )
+                                        ]
+                                    );
+                                } else {
+                                    return createElement(
+                                        'a',
+                                        {
+                                            classNames: 'suggestion-item',
+                                            events: {
+                                                click: (e) => {
+                                                    const href = Spicetify.URI.from(item.uri).toURLPath(true);
+                                                    Spicetify.Platform.History.push(href);
+        
+                                                    this.togglePowerBar();
+                                                }
+                                            }
+                                        },
+                                        document.createTextNode(item.name)
+                                    );
+                                }
+                            }),
                         ]
                     );
                 })
@@ -224,10 +291,33 @@
             const query = this.input.value.trim().split(' ').join('+');
             const res = await Spicetify.CosmosAsync.get(`https://api.spotify.com/v1/search?q=${query}&type=album,artist,playlist,track&limit=3&include_external=audio`)
             
-            /** @type {suggestions} */
+            /** @type {Suggestion[]} */
             const suggestions = Object.entries(res)
                 .filter(([_key, value]) => value.items.length > 0)
-                .map(([key, value]) => ({ name: key, items: value.items }));
+                .map(([key, value]) => ({ type: key, items: value.items }))
+                .reduce((final, item) => {
+                    // TODO surely there's a better way to do this..
+                    switch(item.type) {
+                        case 'tracks': {
+                            final[0] = item;
+                            break;
+                        }
+                        case 'artists': {
+                            final[1] = item;
+                            break;
+                        }
+                        case 'albums': {
+                            final[2] = item;
+                            break;
+                        }
+                        case 'playlists': {
+                            final[3] = item;
+                            break;
+                        }
+                    }
+
+                    return final;
+                }, []);
 
             this.renderSuggestions(suggestions);
         }
@@ -242,6 +332,7 @@
                     height: 100%;
                     position: absolute;
                     width: 100%;
+                    z-index: 100;
                 }
 
                 #power-bar-wrapper {
@@ -266,8 +357,10 @@
                     color: #000;
                 }
 
-                .suggestions-category:not(:last-child) {
-                    margin-bottom: 1em;
+                #suggestions-container {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1em;
                 }
 
                 .suggestion-item {
@@ -277,6 +370,21 @@
 
                 .suggestion-item:hover {
                     cursor: pointer;
+                }
+
+                .suggestion-item.has-info {
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                .suggestion-item.has-info span:nth-child(1) {
+                    font-weight: bold;
+                }
+
+                .suggestion-item.has-info span:nth-child(2) {
+                    color: grey;
+                    font-size: 14px;
+                    margin-top: -4px;
                 }
 
                 .hidden {
