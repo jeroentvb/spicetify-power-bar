@@ -9,8 +9,23 @@
 
 /**
  * @typedef { { type: string, items: SuggestionItem[] } } Suggestion
+ * @typedef { { height: number, url: string, width: number } } SpotifyImage
  * @typedef { {
- *  album?: any
+ *  album?: {
+ *      album_type: string
+ *      artists: any[]
+ *      available_markets: string[]
+ *      external_urls: {spotify: string}
+ *      href: string
+ *      id: string
+ *      images: SpotifyImage[]
+ *      name: string
+ *      release_date: string
+ *      release_date_precision: string
+ *      total_tracks: number
+ *      type: string
+ *      uri: string
+ *  }
  *  artists?: {
  *      external_urls: {spotify: string}
  *      href: string
@@ -27,6 +42,7 @@
  *      type: string
  *      uri: string
  *  }
+ *  images?: SpotifyImage[]
  *  available_markets: any[]
  *  disc_number: number
  *  duration_ms: number
@@ -161,7 +177,7 @@
                 'input',
                 {
                     attributes: {
-                        placeholder: 'Search Spotify..',
+                        placeholder: 'Search Spotify',
                         type: 'text',
                         id: 'power-bar-search'
                     },
@@ -210,16 +226,17 @@
                         },
                         [
                             createElement(
-                                'p',
+                                'h5',
                                 null,
                                 document.createTextNode(type.charAt(0).toUpperCase() + type.slice(1))
                             ),
                             ...items.map(item => {
+                                const hasInfo = item.type === 'track' || item.type === 'album';
                                 return createElement(
                                     'li',
                                     {
                                         attributes: { role: 'option' },
-                                        classNames: ['suggestion-item', 'has-info'],
+                                        classNames: ['suggestion-item',  ...[hasInfo && 'has-info']],
                                         events: {
                                             click: (e) => {
                                                 const href = Spicetify.URI.from(item.uri).toURLPath(true);
@@ -230,12 +247,26 @@
                                         }
                                     },
                                     [
-                                        ...item.type === 'track' || item.type === 'album'
-                                            ? [
+                                        createElement(
+                                            'img',
+                                            {
+                                                classNames: 'suggestion-item__img',
+                                                attributes: {
+                                                    src: item.type === 'track'
+                                                        ? item.album.images[0].url
+                                                        : item.images[0].url
+                                                }
+                                            }
+                                        ),
+                                        createElement(
+                                            'div',
+                                            { classNames: 'suggestioin-item__text' },
+                                            [
                                                 createElement('span', null, document.createTextNode(item.name)),
-                                                createElement('span', null, document.createTextNode(item.artists.map(artist => artist.name).join(', ')))
+                                                ...hasInfo ? [createElement('span', null, document.createTextNode(item.artists.map(artist => artist.name).join(', ')))] : []
                                             ]
-                                            : [ document.createTextNode(item.name) ]
+                                        ),
+                                        
                                     ]
                                 );
                             }),
@@ -284,7 +315,7 @@
 
         async search() {
             const query = this.input.value.trim().split(' ').join('+');
-            const res = await Spicetify.CosmosAsync.get(`https://api.spotify.com/v1/search?q=${query}&type=album,artist,playlist,track&limit=3&include_external=audio`)
+            const res = await Spicetify.CosmosAsync.get(`https://api.spotify.com/v1/search?q=${query}&type=album,artist,playlist,track&limit=3&include_external=audio`);
             
             /** @type {Suggestion[]} */
             const suggestions = Object.entries(res)
@@ -318,7 +349,6 @@
         }
 
         /**
-         * TODO
          * Normal text
             font-size: 16px;
             font-weight: 400;
@@ -356,7 +386,7 @@
                     z-index: 100;
 
                     /* variables */
-                    --pb-border-radius: 12px;
+                    --pb-border-radius: 8px;
                 }
 
                 #power-bar-wrapper {
@@ -386,6 +416,8 @@
                     background-color: var(--spice-player);
                     padding: 1em;
                     border-radius: var(--pb-border-radius);
+                    max-height: 70vh;
+                    overflow-y: scroll;
                 }
 
                 #suggestions-container {
@@ -412,13 +444,21 @@
 
                 .suggestion-item {
                     color: var(--spice-text);
+                    display: flex;
+                    gap: 1em;
+                    align-items: center;
                 }
 
                 .suggestion-item:hover {
                     cursor: pointer;
                 }
 
-                .suggestion-item.has-info {
+                .suggestion-item__img {
+                    height: 2rem;
+                    width: 2rem;
+                }
+
+                .suggestioin-item__text {
                     display: flex;
                     flex-direction: column;
                 }
@@ -438,7 +478,7 @@
                 }
             `;
 
-            document.body.appendChild(style);
+            this.container.appendChild(style);
         }
     }
 
