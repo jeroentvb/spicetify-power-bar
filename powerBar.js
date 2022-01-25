@@ -80,7 +80,7 @@
      * @template { keyof HTMLElementTagNameMap } K
      * @param { K } name
      * @param { { attributes?: Attribute[] | Attribute, classNames?: string[] | string, events?: CreateElementEvent[] | CreateElementEvent } } [props]
-     * @param { HTMLElement[] | HTMLElement | Text } [children]
+     * @param { (HTMLElement | Text)[] | HTMLElement | Text } [children]
      * 
      * @returns { HTMLElementTagNameMap[K] }
      */
@@ -161,6 +161,7 @@
                 'input',
                 {
                     attributes: {
+                        placeholder: 'Search Spotify..',
                         type: 'text',
                         id: 'power-bar-search'
                     },
@@ -196,63 +197,47 @@
         renderSuggestions(suggestions) {
             const suggestionsContainer = createElement(
                 'div',
-                { attributes: { id: 'suggestions-container' }},
+                { attributes: {
+                    id: 'suggestions-container',
+                    role: 'listbox'
+                }},
                 suggestions.map(({ type, items }) => {
                     return createElement(
-                        'div',
-                        { classNames: 'suggestions-category' },
+                        'ul',
+                        {
+                            attributes: { role: 'group' },
+                            classNames: 'suggestions-category'
+                        },
                         [
                             createElement(
-                                'h2',
+                                'p',
                                 null,
                                 document.createTextNode(type.charAt(0).toUpperCase() + type.slice(1))
                             ),
                             ...items.map(item => {
-                                console.log(item)
-                                if (item.type === 'track' || item.type === 'album') {
-                                    return createElement(
-                                        'a',
-                                        {
-                                            classNames: ['suggestion-item', 'has-info'],
-                                            events: {
-                                                click: (e) => {
-                                                    const href = Spicetify.URI.from(item.uri).toURLPath(true);
-                                                    Spicetify.Platform.History.push(href);
-        
-                                                    this.togglePowerBar();
-                                                }
+                                return createElement(
+                                    'li',
+                                    {
+                                        attributes: { role: 'option' },
+                                        classNames: ['suggestion-item', 'has-info'],
+                                        events: {
+                                            click: (e) => {
+                                                const href = Spicetify.URI.from(item.uri).toURLPath(true);
+                                                Spicetify.Platform.History.push(href);
+    
+                                                this.togglePowerBar();
                                             }
-                                        },
-                                        [
-                                            createElement(
-                                                'span',
-                                                null,
-                                                document.createTextNode(item.name)
-                                            ),
-                                            createElement(
-                                                'span',
-                                                null,
-                                                document.createTextNode(item.artists.map(artist => artist.name).join(', '))
-                                            )
-                                        ]
-                                    );
-                                } else {
-                                    return createElement(
-                                        'a',
-                                        {
-                                            classNames: 'suggestion-item',
-                                            events: {
-                                                click: (e) => {
-                                                    const href = Spicetify.URI.from(item.uri).toURLPath(true);
-                                                    Spicetify.Platform.History.push(href);
-        
-                                                    this.togglePowerBar();
-                                                }
-                                            }
-                                        },
-                                        document.createTextNode(item.name)
-                                    );
-                                }
+                                        }
+                                    },
+                                    [
+                                        ...item.type === 'track' || item.type === 'album'
+                                            ? [
+                                                createElement('span', null, document.createTextNode(item.name)),
+                                                createElement('span', null, document.createTextNode(item.artists.map(artist => artist.name).join(', ')))
+                                            ]
+                                            : [ document.createTextNode(item.name) ]
+                                    ]
+                                );
                             }),
                         ]
                     );
@@ -262,11 +247,13 @@
             removeChildren(this.suggestions);
             this.suggestions.appendChild(suggestionsContainer);
             this.suggestions.classList.add('has-suggestions');
+            this.input.classList.add('has-suggestions');
         }
 
         deRenderSuggestions() {
             removeChildren(this.suggestions);
             this.suggestions.classList.remove('has-suggestions');
+            this.input.classList.remove('has-suggestions');
         }
 
         /** @param {KeyboardEvent & { target: HTMLInputElement }} event */
@@ -274,12 +261,20 @@
             const powerBarKeyCombo = code === 'Space' && altKey;
             if (powerBarKeyCombo) return;
 
+            const trimmedValue = value.trim();
+
             if (code === 'Escape') {
-                this.togglePowerBar();
+                if (value) {
+                    this.input.value = '';
+                    this.deRenderSuggestions();
+                } else {
+                    this.togglePowerBar();
+                }
+
+                return;
             }
 
-            const trimmedValue = value.trim();
-            if ( !trimmedValue || trimmedValue.length < 2) {
+            if (!trimmedValue || trimmedValue.length < 2) {
                 this.deRenderSuggestions();
                 return
             }
@@ -322,23 +317,56 @@
             this.renderSuggestions(suggestions);
         }
 
+        /**
+         * TODO
+         * Normal text
+            font-size: 16px;
+            font-weight: 400;
+            letter-spacing: normal;
+            line-height: 24px;
+            text-transform: none;
+            color: #fff;
+
+         * Secondary text
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: normal;
+            line-height: 16px;
+            text-transform: none;
+            color: #b3b3b3;
+
+         * Alt text
+            font-size: 12px;
+            font-weight: 400;
+            letter-spacing: .1em;
+            line-height: 16px;
+            text-transform: uppercase;
+            color: #b3b3b3;
+         */
+
         addCss() {
             const style = document.createElement('style');
             style.textContent = `
                 #power-bar-container {
                     display: flex;
-                    align-items: center;
                     justify-content: center;
                     height: 100%;
                     position: absolute;
                     width: 100%;
                     z-index: 100;
+
+                    /* variables */
+                    --pb-border-radius: 12px;
                 }
 
                 #power-bar-wrapper {
-                    background-color: #fff;
-                    border-radius: 8px;
+                    max-width: 70rem;
+                    background-color: var(--spice-player);
+                    border-radius: var(--pb-border-radius);
+                    border: 1px solid var(--spice-card);
                     box-shadow: rgba(0, 0, 0, 0.25) 0px 14px 28px, rgba(0, 0, 0, 0.22) 0px 10px 10px;
+                    height: fit-content;
+                    margin-top: 10vh;
                 }
 
                 #power-bar-search {
@@ -346,15 +374,18 @@
                     width: 700px;
                     font-size: 2em;
                     padding: 8px 16px;
-                    color: #000;
+                    color: var(--spice-text);
                     background-color: transparent;
                 }
 
+                #power-bar-search.has-suggestions {
+                    border-bottom: 1px solid var(--spice-shadow);
+                }
+
                 #power-bar-suggestions.has-suggestions {
-                    background-color: #fff;
+                    background-color: var(--spice-player);
                     padding: 1em;
-                    border-radius: 0 0 8px 8px;
-                    color: #000;
+                    border-radius: var(--pb-border-radius);
                 }
 
                 #suggestions-container {
@@ -363,9 +394,24 @@
                     gap: 1em;
                 }
 
+                .suggestions-category {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                }
+
+                .suggestions-category:not(:last-child) {
+                    padding-bottom: 1em;
+                    border-bottom: 1px solid var(--spice-shadow);
+                }
+
+                .suggestions-category p {
+                    font-size: 12px;
+                    color: var(--spice-subtext);
+                }
+
                 .suggestion-item {
-                    color: #000;
-                    display: block;
+                    color: var(--spice-text);
                 }
 
                 .suggestion-item:hover {
@@ -382,7 +428,7 @@
                 }
 
                 .suggestion-item.has-info span:nth-child(2) {
-                    color: grey;
+                    color: var(--spice-subtext);
                     font-size: 14px;
                     margin-top: -4px;
                 }
