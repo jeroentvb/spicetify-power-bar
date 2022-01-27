@@ -1,7 +1,7 @@
 {
     "name": "Power bar",
     "description": "Spotlight-like quick search bar.",
-    "preview": "docs/power=bar.png",
+    "preview": "docs/power-bar.png",
     "main": "powerBar.js",
     "readme": "README.md",
     "authors": [{ "name": "jeroentvb", "url": "https://github.com/jeroentvb" }]
