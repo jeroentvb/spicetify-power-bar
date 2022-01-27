@@ -1,5 +1,6 @@
 # spicetify-power-bar
-Spotlight-like quick search bar to navigate to tracks, albums, artists and playlists.
+Spotlight-like quick search bar to navigate to tracks, albums, artists and playlists.  
+Activate with alt+space.
 ![power bar](docs/power-bar.png)
 
 ## Installation
