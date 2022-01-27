@@ -1,7 +1,7 @@
 // @ts-check
 
 // NAME: Power bar
-// VERSION: 0.1.0
+// VERSION: 1.0.0~beta-1
 // DESCRIPTION: Quick search bar
 // AUTHOR: jeroentvb (https://github.com/jeroentvb)
 
@@ -136,6 +136,26 @@
     }
 
     class PowerBar {
+        /** @type { SuggestionItem[] } */
+        flattenedSuggestions = []
+        /** @type { HTMLCollectionOf<Element> } */
+        suggestionElements
+        
+        _selectedSuggestionIndex = 0;
+
+        set selectedSuggestionIndex(index) {
+            if (index === -1) index = this.suggestionElements.length - 1;
+            if (index === this.suggestionElements.length) index = 0;
+
+            this.suggestionElements[this._selectedSuggestionIndex].classList.remove('suggestion-item__active');
+            this._selectedSuggestionIndex = index;
+            this.suggestionElements[index].classList.add('suggestion-item__active');
+        }
+
+        get selectedSuggestionIndex() {
+            return this._selectedSuggestionIndex;
+        }
+
         constructor() {
             const { container, input, suggestions } = this.createPowerBar();
             this.container = container;
@@ -260,7 +280,7 @@
                                         ),
                                         createElement(
                                             'div',
-                                            { classNames: 'suggestioin-item__text' },
+                                            { classNames: 'suggestion-item__text' },
                                             [
                                                 createElement('span', null, document.createTextNode(item.name)),
                                                 ...hasInfo ? [createElement('span', null, document.createTextNode(item.artists.map(artist => artist.name).join(', ')))] : []
@@ -279,6 +299,10 @@
             this.suggestions.appendChild(suggestionsContainer);
             this.suggestions.classList.add('has-suggestions');
             this.input.classList.add('has-suggestions');
+
+            // Handle selecting items
+            this.suggestionElements = document.getElementsByClassName('suggestion-item');
+            this.selectedSuggestionIndex = 0;
         }
 
         deRenderSuggestions() {
@@ -288,12 +312,14 @@
         }
 
         /** @param {KeyboardEvent & { target: HTMLInputElement }} event */
-        onInput({ target: { value }, code, altKey }) {
+        onInput(event) {
+            const { target: { value }, code, altKey } = event;
             const powerBarKeyCombo = code === 'Space' && altKey;
             if (powerBarKeyCombo) return;
 
             const trimmedValue = value.trim();
 
+            // Clear input or hide power bar when esc is pressed
             if (code === 'Escape') {
                 if (value) {
                     this.input.value = '';
@@ -301,8 +327,31 @@
                 } else {
                     this.togglePowerBar();
                 }
-
                 return;
+            }
+
+            // Handle arrow keys
+            if (code === 'ArrowUp') {
+                event.preventDefault();
+                this.selectedSuggestionIndex--
+                return; 
+            }
+            if (code === 'ArrowDown') {
+                event.preventDefault();
+                this.selectedSuggestionIndex++
+                return;
+            }
+
+            if (code === 'Enter') {
+                if (this.flattenedSuggestions) {
+                    const suggestion = this.flattenedSuggestions[this.selectedSuggestionIndex];
+                    const href = Spicetify.URI.from(suggestion.uri).toURLPath(true);
+                    Spicetify.Platform.History.push(href);
+
+                    this.flattenedSuggestions = [];
+                    this.togglePowerBar();
+                    return;
+                }
             }
 
             if (!trimmedValue || trimmedValue.length < 2) {
@@ -315,8 +364,16 @@
 
         async search() {
             const query = this.input.value.trim().split(' ').join('+');
-            const res = await Spicetify.CosmosAsync.get(`https://api.spotify.com/v1/search?q=${query}&type=album,artist,playlist,track&limit=3&include_external=audio`);
+            const res = await Spicetify.CosmosAsync.get(`https://api.spotify.com/v1/search?q=${query}&type=album,artist,playlist,track&limit=3&include_external=audio`)
             
+            const { suggestions, flattenedSuggestions } = this.parseSuggestions(res);
+
+            this.renderSuggestions(suggestions);
+            this.flattenedSuggestions = flattenedSuggestions;
+        }
+
+        /** @param { {} } res */
+        parseSuggestions(res) {
             /** @type {Suggestion[]} */
             const suggestions = Object.entries(res)
                 .filter(([_key, value]) => value.items.length > 0)
@@ -344,35 +401,10 @@
 
                     return final;
                 }, []);
+            const flattenedSuggestions = suggestions.flatMap((category) => category.items);
 
-            this.renderSuggestions(suggestions);
+            return { suggestions, flattenedSuggestions };
         }
-
-        /**
-         * Normal text
-            font-size: 16px;
-            font-weight: 400;
-            letter-spacing: normal;
-            line-height: 24px;
-            text-transform: none;
-            color: #fff;
-
-         * Secondary text
-            font-size: 14px;
-            font-weight: 400;
-            letter-spacing: normal;
-            line-height: 16px;
-            text-transform: none;
-            color: #b3b3b3;
-
-         * Alt text
-            font-size: 12px;
-            font-weight: 400;
-            letter-spacing: .1em;
-            line-height: 16px;
-            text-transform: uppercase;
-            color: #b3b3b3;
-         */
 
         addCss() {
             const style = document.createElement('style');
@@ -391,10 +423,10 @@
 
                 #power-bar-wrapper {
                     max-width: 70rem;
-                    background-color: var(--spice-player);
+                    background-color: var(--spice-card);
                     border-radius: var(--pb-border-radius);
                     border: 1px solid var(--spice-card);
-                    box-shadow: rgba(0, 0, 0, 0.25) 0px 14px 28px, rgba(0, 0, 0, 0.22) 0px 10px 10px;
+                    box-shadow: 5px 12px 40px 0px var(--spice-shadow);
                     height: fit-content;
                     margin-top: 10vh;
                 }
@@ -413,9 +445,7 @@
                 }
 
                 #power-bar-suggestions.has-suggestions {
-                    background-color: var(--spice-player);
-                    padding: 1em;
-                    border-radius: var(--pb-border-radius);
+                    padding: 1em 0 1em 1em;
                     max-height: 70vh;
                     overflow-y: scroll;
                 }
@@ -447,6 +477,8 @@
                     display: flex;
                     gap: 1em;
                     align-items: center;
+                    padding: 4px 8px;
+                    margin-left: -8px;
                 }
 
                 .suggestion-item:hover {
@@ -458,9 +490,18 @@
                     width: 2rem;
                 }
 
-                .suggestioin-item__text {
+                .suggestion-item__text {
                     display: flex;
                     flex-direction: column;
+                }
+
+                .suggestion-item__active {
+                    background-color: var(--spice-button);
+                    border-radius: 8px;
+                }
+
+                .suggestion-item__active span {
+                    color: var(--spice-main) !important;
                 }
 
                 .suggestion-item.has-info span:nth-child(1) {
