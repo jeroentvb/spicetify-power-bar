@@ -15,6 +15,6 @@ Copy `powerBar.js` to the spicetify extenstions folder
 
 Run the following commands
 ```sh
-spicetify config extensions volumePercentage.js
+spicetify config extensions powerBar.js
 spicetify apply
 ```
