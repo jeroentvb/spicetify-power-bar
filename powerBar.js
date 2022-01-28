@@ -166,7 +166,7 @@
             document.body.appendChild(this.container);
 
             document.addEventListener('keydown', (e) => {
-                const activatePowerBar = e.code === 'Space' && e.altKey;
+                const activatePowerBar = e.code === 'Space' && e.ctrlKey;
                 if (!activatePowerBar) return;
 
                 e.preventDefault();
@@ -313,8 +313,8 @@
 
         /** @param {KeyboardEvent & { target: HTMLInputElement }} event */
         onInput(event) {
-            const { target: { value }, code, altKey } = event;
-            const powerBarKeyCombo = code === 'Space' && altKey;
+            const { target: { value }, code, ctrlKey } = event;
+            const powerBarKeyCombo = code === 'Space' && ctrlKey;
             if (powerBarKeyCombo) return;
 
             const trimmedValue = value.trim();
