@@ -150,6 +150,7 @@
             this.suggestionElements[this._selectedSuggestionIndex].classList.remove('suggestion-item__active');
             this._selectedSuggestionIndex = index;
             this.suggestionElements[index].classList.add('suggestion-item__active');
+            this.suggestionElements[index].scrollIntoView();
         }
 
         get selectedSuggestionIndex() {
