@@ -275,7 +275,7 @@
                                                 attributes: {
                                                     src: item.type === 'track'
                                                         ? item.album.images[0].url
-                                                        : item.images[0].url
+                                                        : item.images[0]?.url // TODO add placeholder image
                                                 }
                                             }
                                         ),
