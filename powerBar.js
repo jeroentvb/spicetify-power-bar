@@ -134,11 +134,24 @@
             el.removeChild(el.lastElementChild);
           }
     }
+    
+    /**
+     * @param {HTMLElement} target 
+     * @param {HTMLElement} container
+     */
+     function scrollIntoViewIfNeeded(target, container) {
+        const targetBounds = target.getBoundingClientRect();
+        const { top, bottom } = container.getBoundingClientRect();
+
+        if (targetBounds.top < top || targetBounds.bottom > bottom) {
+            target.scrollIntoView();
+        }
+    }
 
     class PowerBar {
         /** @type { SuggestionItem[] } */
         flattenedSuggestions = []
-        /** @type { HTMLCollectionOf<Element> } */
+        /** @type { HTMLCollectionOf<HTMLElement> } */
         suggestionElements
         
         _selectedSuggestionIndex = 0;
@@ -150,7 +163,7 @@
             this.suggestionElements[this._selectedSuggestionIndex].classList.remove('suggestion-item__active');
             this._selectedSuggestionIndex = index;
             this.suggestionElements[index].classList.add('suggestion-item__active');
-            this.suggestionElements[index].scrollIntoView();
+            scrollIntoViewIfNeeded(this.suggestionElements[index], this.suggestions);
         }
 
         get selectedSuggestionIndex() {
@@ -302,6 +315,7 @@
             this.input.classList.add('has-suggestions');
 
             // Handle selecting items
+            // @ts-ignore GIMME TYPESCRIPT PLZ (getElementsByClassName can be casted, but I don't know how in JSDOC)
             this.suggestionElements = document.getElementsByClassName('suggestion-item');
             this.selectedSuggestionIndex = 0;
         }
