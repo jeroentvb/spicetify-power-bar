@@ -153,6 +153,8 @@
         flattenedSuggestions = []
         /** @type { HTMLCollectionOf<HTMLElement> } */
         suggestionElements
+
+        isMac = window.navigator.userAgent.includes('Mac');
         
         _selectedSuggestionIndex = 0;
 
@@ -180,7 +182,7 @@
             document.body.appendChild(this.container);
 
             document.addEventListener('keydown', (e) => {
-                const activatePowerBar = e.code === 'Space' && e.ctrlKey;
+                const activatePowerBar = e.code === 'Space' && (this.isMac ? e.altKey : e.ctrlKey);
                 if (!activatePowerBar) return;
 
                 e.preventDefault();
@@ -328,8 +330,8 @@
 
         /** @param {KeyboardEvent & { target: HTMLInputElement }} event */
         onInput(event) {
-            const { target: { value }, code, ctrlKey } = event;
-            const powerBarKeyCombo = code === 'Space' && ctrlKey;
+            const { target: { value }, code, ctrlKey, altKey } = event;
+            const powerBarKeyCombo = code === 'Space' && (this.isMac ? altKey : ctrlKey);
             if (powerBarKeyCombo) return;
 
             const trimmedValue = value.trim();

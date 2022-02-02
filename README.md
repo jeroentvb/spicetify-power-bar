@@ -1,7 +1,11 @@
 # Spicetify power bar
-Spotlight-like quick search bar to navigate to tracks, albums, artists and playlists.  
-Activate with ctrl+space.
+Spotlight-like quick search bar to navigate to tracks, albums, artists and playlists.
+
 ![power bar](docs/power-bar.png)
+
+## Table of contents
+  - [Installation](#installation)
+  - [Usage](#usage)
 
 ## Installation
 Install via [spicetify-marketplace](https://github.com/CharlieS1103/spicetify-marketplace)
@@ -18,3 +22,10 @@ Run the following commands
 spicetify config extensions powerBar.js
 spicetify apply
 ```
+
+## Usage
+Activate using the shortcut
+| **Platform**      | **Shortcut** |
+|-------------------|--------------|
+| **Windows/Linux** | `ctrl+space` |
+| **MacOs**         | `alt+space`  |
