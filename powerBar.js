@@ -433,6 +433,7 @@
                     position: absolute;
                     width: 100%;
                     z-index: 100;
+                    background-color: rgba(0,0,0,.4);
 
                     /* variables */
                     --pb-border-radius: 8px;
@@ -440,9 +441,8 @@
 
                 #power-bar-wrapper {
                     max-width: 70rem;
-                    background-color: var(--spice-card);
+                    background-color: var(--spice-tab-active);
                     border-radius: var(--pb-border-radius);
-                    border: 1px solid var(--spice-card);
                     box-shadow: 5px 12px 40px 0px var(--spice-shadow);
                     height: fit-content;
                     margin-top: 10vh;
