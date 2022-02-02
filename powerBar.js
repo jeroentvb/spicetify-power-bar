@@ -380,7 +380,7 @@
         }
 
         async search() {
-            const query = this.input.value.trim().split(' ').join('+');
+            const query = encodeURIComponent(this.input.value.trim());
             const res = await Spicetify.CosmosAsync.get(`https://api.spotify.com/v1/search?q=${query}&type=album,artist,playlist,track&limit=3&include_external=audio`)
             
             const { suggestions, flattenedSuggestions } = this.parseSuggestions(res);
