@@ -1,6 +1,3 @@
-/**
- * Types for spicetify v2.9.0
- */
 declare namespace Spicetify {
     type Metadata = Partial<Record<string, string>>;
     type ContextTrack = {
