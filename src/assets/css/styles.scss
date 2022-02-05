@@ -16,7 +16,8 @@
         border-radius: var(--pb-border-radius);
         box-shadow: 5px 12px 40px 0px var(--spice-shadow);
         height: fit-content;
-        margin-top: 10vh;
+        top: 10vh;
+        position: absolute;
     }
     
     #power-bar-search {
