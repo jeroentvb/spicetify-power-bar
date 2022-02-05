@@ -1,0 +1,113 @@
+#power-bar-container {
+    display: flex;
+    justify-content: center;
+    height: 100%;
+    position: absolute;
+    width: 100%;
+    z-index: 100;
+    background-color: rgba(0,0,0,.4);
+
+    /* variables */
+    --pb-border-radius: 8px;
+
+    #power-bar-wrapper {
+        max-width: 70rem;
+        background-color: var(--spice-tab-active);
+        border-radius: var(--pb-border-radius);
+        box-shadow: 5px 12px 40px 0px var(--spice-shadow);
+        height: fit-content;
+        margin-top: 10vh;
+    }
+    
+    #power-bar-search {
+        border: none;
+        width: 700px;
+        font-size: 2em;
+        padding: 8px 16px;
+        color: var(--spice-text);
+        background-color: transparent;
+
+        &.has-suggestions {
+            border-bottom: 1px solid var(--spice-shadow);
+        }
+    }
+    
+    #power-bar-suggestions { // .has-suggestions
+        padding: 1em 0 1em 1em;
+        max-height: 70vh;
+        overflow-y: scroll;
+    }
+    
+    #suggestions-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
+    }
+    
+    .suggestions-category {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .suggestions-category {
+        &:not(:last-child) {
+            padding-bottom: 1em;
+            border-bottom: 1px solid var(--spice-shadow);
+        }
+
+        p {
+            font-size: 12px;
+            color: var(--spice-subtext);
+        }
+    }
+    
+    .suggestion-item {
+        color: var(--spice-text);
+        display: flex;
+        gap: 1em;
+        align-items: center;
+        padding: 4px 8px;
+        margin-left: -8px;
+
+        &:hover {
+            cursor: pointer;
+        }
+
+        &__img {
+            height: 2rem;
+            width: 2rem;
+        }
+
+        &__text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        &__active {
+            background-color: var(--spice-button);
+            border-radius: 8px;
+
+            span {
+                color: var(--spice-main) !important;
+            }
+        }
+
+        &.has-info span {
+            &:nth-child(1) {
+                font-weight: bold;
+            }
+
+            &:nth-child(2) {
+                color: var(--spice-subtext);
+                font-size: 14px;
+                margin-top: -4px;
+            }
+        }
+    }
+    
+    .hidden {
+        display: none !important;
+    }
+    
+}

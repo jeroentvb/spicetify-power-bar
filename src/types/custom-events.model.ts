@@ -1,0 +1,1 @@
+export type SuggestionClickEmitEvent = (uri: string) => void;
