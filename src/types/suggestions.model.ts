@@ -1,3 +1,5 @@
+import type { SearchCategories } from "./categories.model";
+
 export interface ICategorizedSuggestion {
     type: string,
     items: ISuggestion[]
@@ -57,4 +59,9 @@ export interface ISpotifyImage {
     height: number;
     url: string;
     width: number;
+}
+
+export interface ISearchReturnType {
+    categorizedSuggestions: ICategorizedSuggestion[],
+    suggestions: ISuggestion[]
 }

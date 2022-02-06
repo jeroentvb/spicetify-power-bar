@@ -1,8 +1,9 @@
-import { ICategorizedSuggestion } from '../types/suggestions.model';
+import type { ISpotifySearchResponse } from '../types/search-response.model';
+import type { ICategorizedSuggestion, ISearchReturnType } from '../types/suggestions.model';
 
-export async function search(searchQuery: string): Promise<ICategorizedSuggestion[]> {
+export default async function search(searchQuery: string): Promise<ISearchReturnType> {
     const query = encodeURIComponent(searchQuery.trim());
-    const res = await Spicetify.CosmosAsync.get(`https://api.spotify.com/v1/search?q=${query}&type=album,artist,playlist,track&limit=3&include_external=audio`)
+    const res: ISpotifySearchResponse = await Spicetify.CosmosAsync.get(`https://api.spotify.com/v1/search?q=${query}&type=album,artist,playlist,track&limit=3&include_external=audio`)
     
     // const { suggestions, flattenedSuggestions } = this.parseSuggestions(res);
 
@@ -12,42 +13,35 @@ export async function search(searchQuery: string): Promise<ICategorizedSuggestio
     return parse(res);
 }
 
-function parse(res: any): ICategorizedSuggestion[] {
-    console.log('power bar search result response', res);
-    return Object.entries(res)
-        // @ts-ignore
+function parse(res: ISpotifySearchResponse): ISearchReturnType {
+    const categorizedSuggestions = Object.entries(res)
         .filter(([_key, value]) => value.items.length > 0)
-        // @ts-ignore
         .map(([key, value]) => ({ type: key, items: value.items }))
         .reduce((final, item) => {
             // TODO surely there's a better way to do this..
             switch(item.type) {
                 case 'tracks': {
-                    // @ts-ignore
                     final[0] = item;
                     break;
                 }
                 case 'artists': {
-                    // @ts-ignore
                     final[1] = item;
                     break;
                 }
                 case 'albums': {
-                    // @ts-ignore
                     final[2] = item;
                     break;
                 }
                 case 'playlists': {
-                    // @ts-ignore
                     final[3] = item;
                     break;
                 }
             }
 
             return final;
-        }, []);
+        }, [] as ICategorizedSuggestion[]);
+
+    const suggestions = categorizedSuggestions.flatMap((category) => category.items);
+
+    return { categorizedSuggestions, suggestions };
 }
-
-// const debouncedSearch = debounce();
-
-// export default debouncedSearch;

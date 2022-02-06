@@ -1,24 +1,47 @@
-import React, { KeyboardEventHandler, useRef } from "react";
+import React, { KeyboardEventHandler } from "react";
 import { debounce } from "lodash-es";
 import classnames from "classnames";
 
-import { search } from '../services/search';
+import scrollIntoViewIfNeeded from "../utils/scroll-into-view";
+import navigateUsingUri from "../utils/navigate-using-uri";
+import search from '../services/search';
 import Suggestions from "./Suggestions";
 
-import type { ICategorizedSuggestion } from "../types/suggestions.model";
+import type { ICategorizedSuggestion, ISuggestion } from "../types/suggestions.model";
 import type { SuggestionClickEmitEvent } from "../types/custom-events.model";
 
 interface LocalState {
     active: boolean;
     categorizedSuggestions: ICategorizedSuggestion[];
+    selectedSuggestionUri: string;
 }
 
 export default class PowerBar extends React.Component<{}, LocalState> {
     readonly isMac = Spicetify.Platform.PlatformData.os_name === 'osx';
 
+    suggestions: ISuggestion[] = [];
+
     searchInput = React.createRef<HTMLInputElement>();
 
-    previousValue = '';
+    previousSearchValue = '';
+
+    _selectedSuggestionIndex = 0
+
+    set selectedSuggestionIndex(index: number) {
+        if (index === -1) index = this.suggestions.length - 1;
+        if (index === this.suggestions.length) index = 0;
+        this._selectedSuggestionIndex = index;
+
+        this.setState({ selectedSuggestionUri: this.suggestions[index].uri }, () => {
+            const activeSuggestion = document.getElementsByClassName('suggestion-item__active')[0] as HTMLElement;
+            const suggestionsElement = document.getElementById('power-bar-suggestions') as HTMLDivElement;
+            scrollIntoViewIfNeeded(activeSuggestion, suggestionsElement);
+        });
+    }
+
+    get selectedSuggestionIndex(): number {
+        return this._selectedSuggestionIndex;
+    }
 
     constructor(props: {}) {
         super(props);
@@ -26,20 +49,8 @@ export default class PowerBar extends React.Component<{}, LocalState> {
         this.state = {
             active: false,
             categorizedSuggestions: [],
+            selectedSuggestionUri: '',
         }
-    }
-
-    debouncedSearch = debounce(async () => {
-        console.log('search')
-        const categorizedSuggestions = await search(this.searchInput.current!.value);
-        this.setState({ categorizedSuggestions })
-    }, 300)
-
-    onSuggestionClick: SuggestionClickEmitEvent = (uri) => {
-        const href = Spicetify.URI.from(uri)!.toURLPath(true);
-        Spicetify.Platform.History.push(href);
-
-        this.togglePowerBar();
     }
 
     componentDidMount() {
@@ -50,6 +61,19 @@ export default class PowerBar extends React.Component<{}, LocalState> {
             e.preventDefault();
             this.togglePowerBar();
         });
+    }
+
+    debouncedSearch = debounce(async () => {
+        const { categorizedSuggestions, suggestions } = await search(this.searchInput.current!.value);
+        
+        this.setState({ categorizedSuggestions });
+        this.suggestions = suggestions;
+        this.selectedSuggestionIndex = 0;
+    }, 300)
+
+    onSuggestionClick: SuggestionClickEmitEvent = (uri) => {
+        navigateUsingUri(uri);
+        this.togglePowerBar();
     }
 
     togglePowerBar() {
@@ -65,6 +89,7 @@ export default class PowerBar extends React.Component<{}, LocalState> {
 
     clearSuggestions() {
         this.setState({ categorizedSuggestions: [] });
+        this.suggestions = [];
     }
 
     onInput: KeyboardEventHandler<HTMLInputElement> = (event) => {
@@ -88,25 +113,23 @@ export default class PowerBar extends React.Component<{}, LocalState> {
         // Handle arrow keys
         if (key === 'ArrowUp') {
             event.preventDefault();
-            // this.selectedSuggestionIndex--
+            this.selectedSuggestionIndex--
             return; 
         }
         if (key === 'ArrowDown') {
             event.preventDefault();
-            // this.selectedSuggestionIndex++
+            this.selectedSuggestionIndex++
             return;
         }
 
         if (key === 'Enter') {
-            // if (this.flattenedSuggestions) {
-            //     const suggestion = this.flattenedSuggestions[this.selectedSuggestionIndex];
-            //     const href = Spicetify.URI.from(suggestion.uri).toURLPath(true);
-            //     Spicetify.Platform.History.push(href);
+            if (this.suggestions) {
+                const suggestion = this.suggestions[this.selectedSuggestionIndex];
+                navigateUsingUri(suggestion.uri);
 
-            //     this.flattenedSuggestions = [];
-            //     togglePowerBar();
-            //     return;
-            // }
+                this.togglePowerBar();
+                return;
+            }
         }
 
         if (!trimmedValue || trimmedValue.length < 2) {
@@ -114,10 +137,14 @@ export default class PowerBar extends React.Component<{}, LocalState> {
             return
         }
 
-        if (trimmedValue === this.previousValue) return;
+        if (trimmedValue === this.previousSearchValue) return;
 
-        this.previousValue = trimmedValue;
+        this.previousSearchValue = trimmedValue;
         this.debouncedSearch();
+    }
+
+    preventDefaultArrowKey: KeyboardEventHandler<HTMLInputElement> = (e) => {
+        if (e.key === 'ArrowUp') e.preventDefault();
     }
 
     render() {
@@ -130,8 +157,16 @@ export default class PowerBar extends React.Component<{}, LocalState> {
                         id="power-bar-search"
                         className={classnames({ 'has-suggestions': this.state.categorizedSuggestions.length > 0 })}
                         onKeyUp={this.onInput}
+                        onKeyDown={this.preventDefaultArrowKey}
                     />
-                    {this.state.categorizedSuggestions.length > 0 && <Suggestions categorizedSuggestions={this.state.categorizedSuggestions} onSuggestionClick={this.onSuggestionClick} />}
+                    {
+                        this.state.categorizedSuggestions.length > 0 &&
+                        <Suggestions
+                            categorizedSuggestions={this.state.categorizedSuggestions}
+                            selectedSuggestionUri={this.state.selectedSuggestionUri}
+                            onSuggestionClick={this.onSuggestionClick}
+                        />
+                    }
                 </div>
             </div>
         );
