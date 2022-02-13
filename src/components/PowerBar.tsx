@@ -6,6 +6,7 @@ import scrollIntoViewIfNeeded from "../utils/scroll-into-view";
 import navigateUsingUri from "../utils/navigate-using-uri";
 import search from '../services/search';
 import Suggestions from "./Suggestions";
+import { IS_INPUT_REGEX } from "../constants";
 
 import type { ICategorizedSuggestion, ISuggestion } from "../types/suggestions.model";
 import type { SuggestionClickEmitEvent } from "../types/custom-events.model";
@@ -97,7 +98,8 @@ export default class PowerBar extends React.Component<{}, LocalState> {
         const powerBarKeyCombo = key === 'Space' && (this.isMac ? altKey : ctrlKey);
         if (powerBarKeyCombo) return;
 
-        const trimmedValue = currentTarget.value.trim();
+        let trimmedValue = currentTarget.value.trim();
+        if (IS_INPUT_REGEX.test(key)) trimmedValue = trimmedValue + key;
 
         // Clear input or hide power bar when esc is pressed
         if (key === 'Escape') {
@@ -143,10 +145,6 @@ export default class PowerBar extends React.Component<{}, LocalState> {
         this.debouncedSearch();
     }
 
-    preventDefaultArrowKey: KeyboardEventHandler<HTMLInputElement> = (e) => {
-        if (e.key === 'ArrowUp') e.preventDefault();
-    }
-
     render() {
         return (
             <div id="power-bar-container" className={classnames({'hidden': !this.state.active})} onClick={this.togglePowerBar.bind(this)}>
@@ -156,8 +154,7 @@ export default class PowerBar extends React.Component<{}, LocalState> {
                         type="text"
                         id="power-bar-search"
                         className={classnames({ 'has-suggestions': this.state.categorizedSuggestions.length > 0 })}
-                        onKeyUp={this.onInput}
-                        onKeyDown={this.preventDefaultArrowKey}
+                        onKeyDown={this.onInput}
                     />
                     {
                         this.state.categorizedSuggestions.length > 0 &&
