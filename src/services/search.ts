@@ -1,15 +1,10 @@
 import type { ISpotifySearchResponse } from '../types/search-response.model';
 import type { ICategorizedSuggestion, ISearchReturnType } from '../types/suggestions.model';
 
-export default async function search(searchQuery: string): Promise<ISearchReturnType> {
+export default async function search(searchQuery: string, limit: string): Promise<ISearchReturnType> {
     const query = encodeURIComponent(searchQuery.trim());
-    const res: ISpotifySearchResponse = await Spicetify.CosmosAsync.get(`https://api.spotify.com/v1/search?q=${query}&type=album,artist,playlist,track&limit=3&include_external=audio`)
+    const res: ISpotifySearchResponse = await Spicetify.CosmosAsync.get(`https://api.spotify.com/v1/search?q=${query}&type=album,artist,playlist,track&limit=${limit}&include_external=audio`)
     
-    // const { suggestions, flattenedSuggestions } = this.parseSuggestions(res);
-
-    // this.renderSuggestions(suggestions);
-    // this.flattenedSuggestions = flattenedSuggestions;
-
     return parse(res);
 }
 

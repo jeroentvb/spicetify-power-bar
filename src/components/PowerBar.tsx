@@ -1,5 +1,6 @@
 import React, { KeyboardEventHandler } from "react";
 import { debounce } from "lodash-es";
+import { SettingsSection } from 'spcr-settings';
 import classnames from "classnames";
 
 import scrollIntoViewIfNeeded from "../utils/scroll-into-view";
@@ -10,6 +11,8 @@ import { IS_INPUT_REGEX } from "../constants";
 
 import type { ICategorizedSuggestion, ISuggestion } from "../types/suggestions.model";
 import type { SuggestionClickEmitEvent } from "../types/custom-events.model";
+import type { ISettingsField } from "spcr-settings/types/settings-field";
+import { KEY_COMBO, MODIFIER_KEYS, PLAY_IMMEDIATELY, RESULTS_PER_CATEGORY } from "../constants";
 
 interface LocalState {
     active: boolean;
@@ -26,7 +29,9 @@ export default class PowerBar extends React.Component<{}, LocalState> {
 
     previousSearchValue = '';
 
-    _selectedSuggestionIndex = 0
+    _selectedSuggestionIndex = 0;
+
+    settings: SettingsSection;
 
     set selectedSuggestionIndex(index: number) {
         if (index === -1) index = this.suggestions.length - 1;
@@ -52,12 +57,39 @@ export default class PowerBar extends React.Component<{}, LocalState> {
             categorizedSuggestions: [],
             selectedSuggestionUri: '',
         }
+
+        this.settings = new SettingsSection('Power bar settings', 'power-bar-settings', {
+            [RESULTS_PER_CATEGORY]: {
+                type: 'dropdown',
+                description: 'Show amount of suggestions per category',
+                defaultValue: '3',
+                options: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
+            },
+            [KEY_COMBO]: {
+                type: 'input',
+                description: 'Activation key combo. First key needs to be a modifier (shift, ctrl, alt or cmd/windows key).',
+                defaultValue: [this.isMac ? 'altKey' : 'controlKey', 'Space'],
+                keyDown: this.handleSettingsInput,
+                blur: (e) => {
+                    const currentKeyCombo: string[] = this.settings.getFieldValue(KEY_COMBO);
+                    if (currentKeyCombo.length === 0) {
+                        e.currentTarget.placeholder = 'Please set a valid key combo';
+                        Spicetify.showNotification('Please set a valid key combo for the power bar');
+                    }
+                }
+            },
+            [PLAY_IMMEDIATELY]: {
+                type: 'toggle',
+                description: 'Play suggestion on click',
+                defaultValue: false,
+            }
+        });
+        this.settings.pushSettings();
     }
 
     componentDidMount() {
         document.addEventListener('keydown', (e) => {
-            const activatePowerBar = e.code === 'Space' && (this.isMac ? e.altKey : e.ctrlKey);
-            if (!activatePowerBar) return;
+            if (!this.isActivationKeyCombo(e)) return;
     
             e.preventDefault();
             this.togglePowerBar();
@@ -65,7 +97,8 @@ export default class PowerBar extends React.Component<{}, LocalState> {
     }
 
     debouncedSearch = debounce(async () => {
-        const { categorizedSuggestions, suggestions } = await search(this.searchInput.current!.value);
+        const limit: string = this.settings.getFieldValue(RESULTS_PER_CATEGORY);
+        const { categorizedSuggestions, suggestions } = await search(this.searchInput.current!.value, limit);
         
         this.setState({ categorizedSuggestions });
         this.suggestions = suggestions;
@@ -73,6 +106,13 @@ export default class PowerBar extends React.Component<{}, LocalState> {
     }, 300)
 
     onSuggestionClick: SuggestionClickEmitEvent = (uri) => {
+        this.onSelectSuggestion(uri)
+    }
+
+    onSelectSuggestion(uri: string) {
+        const playImmediately: string = this.settings.getFieldValue(PLAY_IMMEDIATELY);
+        if (playImmediately) Spicetify.Player.playUri(uri);
+
         navigateUsingUri(uri);
         this.togglePowerBar();
     }
@@ -94,10 +134,9 @@ export default class PowerBar extends React.Component<{}, LocalState> {
     }
 
     onInput: KeyboardEventHandler<HTMLInputElement> = (event) => {
-        const { currentTarget, key, ctrlKey, altKey } = event;
-        const powerBarKeyCombo = key === 'Space' && (this.isMac ? altKey : ctrlKey);
-        if (powerBarKeyCombo) return;
+        if (this.isActivationKeyCombo(event.nativeEvent)) return;
 
+        const { currentTarget, key } = event;
         let trimmedValue = currentTarget.value.trim();
         if (IS_INPUT_REGEX.test(key)) trimmedValue = trimmedValue + key;
 
@@ -127,9 +166,8 @@ export default class PowerBar extends React.Component<{}, LocalState> {
         if (key === 'Enter') {
             if (this.suggestions) {
                 const suggestion = this.suggestions[this.selectedSuggestionIndex];
-                navigateUsingUri(suggestion.uri);
+                this.onSelectSuggestion(suggestion.uri);
 
-                this.togglePowerBar();
                 return;
             }
         }
@@ -145,6 +183,53 @@ export default class PowerBar extends React.Component<{}, LocalState> {
         this.debouncedSearch();
     }
 
+    handleSettingsInput: ISettingsField['keyDown'] = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const { code, key } = e.nativeEvent;
+        const currentKeyCombo: string[] = this.settings.getFieldValue(KEY_COMBO);
+    
+        switch(code) {
+            case 'Backspace': {
+                this.settings.setFieldValue(KEY_COMBO, currentKeyCombo.slice(0, -1));
+                e.currentTarget.value = e.currentTarget.value.split(',').slice(0, -1).join('');
+    
+                break;
+            }
+            case 'Enter': 
+            case 'Tab': {
+                e.currentTarget.blur();
+                break;
+            }
+            default: {
+                if (currentKeyCombo.length >= 2) return;
+
+                // Force the first key to be a modifier key
+                const isModifier = MODIFIER_KEYS.some((modifierKey) => code.includes(modifierKey));
+                if (currentKeyCombo.length === 0 && !isModifier) return;
+
+                const keyToSave = currentKeyCombo.length === 0
+                    // Parse modifier keys to keyboard event modifier
+                    // E.g. code may contain 'AltLeft' which is parsed to 'altkey'. Extra replace needed for control key.
+                    ? code.toLowerCase().replace(/left|right/ig, 'Key').replace('control', 'ctrl')
+                    : code
+    
+                this.settings.setFieldValue(KEY_COMBO, [...currentKeyCombo, keyToSave]);
+                e.currentTarget.value = e.currentTarget.value ? `${e.currentTarget.value},${keyToSave}` : keyToSave;
+            }
+        }
+    }
+
+    isActivationKeyCombo(event: KeyboardEvent): boolean {
+        const el = event.target as Element | null;
+        // Prevent triggering the power bar in input fields. Such as search bar and settings page
+        if (el?.tagName === 'INPUT' && el.id !== 'power-bar-search') return false;
+
+        const [modifier, activationKey]: string[] = this.settings.getFieldValue(KEY_COMBO);
+
+        return !!event[modifier as 'key'] && event.code === activationKey;
+    }
+
     render() {
         return (
             <div id="power-bar-container" className={classnames({'hidden': !this.state.active})} onClick={this.togglePowerBar.bind(this)}>
@@ -153,6 +238,7 @@ export default class PowerBar extends React.Component<{}, LocalState> {
                         ref={this.searchInput}
                         type="text"
                         id="power-bar-search"
+                        placeholder="Search Spotify"
                         className={classnames({ 'has-suggestions': this.state.categorizedSuggestions.length > 0 })}
                         onKeyDown={this.onInput}
                     />
