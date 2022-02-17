@@ -1,6 +1,6 @@
 {
   "name": "power-bar",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "author": {
     "name": "jeroentvb",
     "url": "https://github.com/jeroentvb"
@@ -8,7 +8,7 @@
   "private": true,
   "scripts": {
     "build": "spicetify-creator",
-    "build-local": "spicetify-creator --out=dist",
+    "build-local": "spicetify-creator --out=dist --minify",
     "watch": "spicetify-creator --watch",
     "watch-local": "spicetify-creator --watch --out=dist"
   },
