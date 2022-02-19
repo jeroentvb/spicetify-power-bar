@@ -16,10 +16,11 @@
     "@types/lodash-es": "^4.17.5",
     "@types/react": "^17.0.39",
     "@types/react-dom": "^17.0.11",
-    "spicetify-creator": "^1.0.3"
+    "spicetify-creator": "^1.0.7"
   },
   "dependencies": {
     "classnames": "^2.3.1",
-    "lodash-es": "^4.17.21"
+    "lodash-es": "^4.17.21",
+    "spcr-settings": "^1.0.0"
   }
 }
