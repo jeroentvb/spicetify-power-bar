@@ -11,7 +11,6 @@ import { IS_INPUT_REGEX } from "../constants";
 
 import type { ICategorizedSuggestion, ISuggestion } from "../types/suggestions.model";
 import type { SuggestionClickEmitEvent } from "../types/custom-events.model";
-import type { ISettingsField } from "spcr-settings/types/settings-field";
 import { KEY_COMBO, MODIFIER_KEYS, PLAY_IMMEDIATELY, RESULTS_PER_CATEGORY } from "../constants";
 
 interface LocalState {
@@ -69,12 +68,14 @@ export default class PowerBar extends React.Component<{}, LocalState> {
                 type: 'input',
                 description: 'Activation key combo. First key needs to be a modifier (shift, ctrl, alt or cmd/windows key).',
                 defaultValue: [this.isMac ? 'altKey' : 'controlKey', 'Space'],
-                keyDown: this.handleSettingsInput,
-                blur: (e) => {
-                    const currentKeyCombo: string[] = this.settings.getFieldValue(KEY_COMBO);
-                    if (currentKeyCombo.length === 0) {
-                        e.currentTarget.placeholder = 'Please set a valid key combo';
-                        Spicetify.showNotification('Please set a valid key combo for the power bar');
+                events: {
+                    onKeyDown: this.handleSettingsInput,
+                    onBlur: (e) => {
+                        const currentKeyCombo: string[] = this.settings.getFieldValue(KEY_COMBO);
+                        if (currentKeyCombo.length === 0) {
+                            e.currentTarget.placeholder = 'Please set a valid key combo';
+                            Spicetify.showNotification('Please set a valid key combo for the power bar');
+                        }
                     }
                 }
             },
@@ -183,7 +184,7 @@ export default class PowerBar extends React.Component<{}, LocalState> {
         this.debouncedSearch();
     }
 
-    handleSettingsInput: ISettingsField['keyDown'] = (e) => {
+    handleSettingsInput: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
         e.preventDefault();
         e.stopPropagation();
         const { code, key } = e.nativeEvent;
