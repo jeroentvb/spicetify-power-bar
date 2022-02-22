@@ -67,7 +67,7 @@ export default class PowerBar extends React.Component<{}, LocalState> {
             [KEY_COMBO]: {
                 type: 'input',
                 description: 'Activation key combo. First key needs to be a modifier (shift, ctrl, alt or cmd/windows key).',
-                defaultValue: [this.isMac ? 'altKey' : 'controlKey', 'Space'],
+                defaultValue: [this.isMac ? 'altKey' : 'ctrlKey', 'Space'],
                 events: {
                     onKeyDown: this.handleSettingsInput,
                     onBlur: (e) => {
