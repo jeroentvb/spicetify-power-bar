@@ -1,5 +1,3 @@
-import type { SearchCategories } from "./categories.model";
-
 export interface ICategorizedSuggestion {
     type: string,
     items: ISuggestion[]

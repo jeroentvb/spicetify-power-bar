@@ -1,5 +1,5 @@
-import { SearchCategories } from "./categories.model";
-import { ISuggestion } from "./suggestions.model";
+import { SearchCategories } from './categories.model';
+import { ISuggestion } from './suggestions.model';
 
 export type ISpotifySearchResponse = {
     [key in SearchCategories]: ISpotifySearchResult
