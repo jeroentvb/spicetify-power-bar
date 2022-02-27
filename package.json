@@ -2,30 +2,34 @@
   "name": "power-bar",
   "version": "1.0.2",
   "author": {
-      "name": "jeroentvb",
-      "url": "https://github.com/jeroentvb"
+    "name": "jeroentvb",
+    "url": "https://github.com/jeroentvb"
   },
   "private": true,
   "scripts": {
-      "build": "spicetify-creator",
-      "build-local": "spicetify-creator --out=dist --minify",
-      "watch": "spicetify-creator --watch",
-      "lint": "eslint .",
-      "lint:fix": "eslint --fix --ext .ts,.tsx ."
+    "build": "spicetify-creator",
+    "build:local": "spicetify-creator --out=dist --minify",
+    "build:prod": "npm run build:local && npm run copy:readme && npm run copy:docs",
+    "copy:readme": "copyfiles README.md dist/",
+    "copy:docs": "copyfiles docs/* dist/",
+    "watch": "spicetify-creator --watch",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix --ext .ts,.tsx ."
   },
   "devDependencies": {
-      "@types/lodash-es": "^4.17.5",
-      "@types/react": "^17.0.39",
-      "@types/react-dom": "^17.0.11",
-      "@typescript-eslint/eslint-plugin": "^5.12.1",
-      "@typescript-eslint/parser": "^5.12.1",
-      "eslint": "^8.9.0",
-      "eslint-plugin-react": "^7.28.0",
-      "spicetify-creator": "^1.0.8"
+    "@types/lodash-es": "^4.17.5",
+    "@types/react": "^17.0.39",
+    "@types/react-dom": "^17.0.11",
+    "@typescript-eslint/eslint-plugin": "^5.12.1",
+    "@typescript-eslint/parser": "^5.12.1",
+    "copyfiles": "^2.4.1",
+    "eslint": "^8.9.0",
+    "eslint-plugin-react": "^7.28.0",
+    "spicetify-creator": "^1.0.8"
   },
   "dependencies": {
-      "classnames": "^2.3.1",
-      "lodash-es": "^4.17.21",
-      "spcr-settings": "^1.0.0"
+    "classnames": "^2.3.1",
+    "lodash-es": "^4.17.21",
+    "spcr-settings": "^1.0.0"
   }
 }
