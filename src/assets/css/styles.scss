@@ -31,6 +31,10 @@
         &.has-suggestions {
             border-bottom: 1px solid var(--spice-shadow);
         }
+
+        &:focus-visible {
+            outline: none;
+        }
     }
     
     #power-bar-suggestions { // .has-suggestions

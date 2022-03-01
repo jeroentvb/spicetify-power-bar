@@ -164,6 +164,26 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
          return;
       }
 
+      if (key === 'Tab') {
+         event.preventDefault();
+
+         const currentSuggestionType = this.suggestions[this.selectedSuggestionIndex].type;
+         let nextSuggestionIndex = 0;
+
+         for (let i = this.selectedSuggestionIndex; i < this.suggestions.length; i++) {
+            const suggestion = this.suggestions[i];
+
+            if (suggestion.type !== currentSuggestionType) {
+               nextSuggestionIndex = i;
+               break;
+            }
+         }
+
+         this.selectedSuggestionIndex = nextSuggestionIndex;
+
+         return;
+      }
+
       if (key === 'Enter') {
          if (this.suggestions) {
             const suggestion = this.suggestions[this.selectedSuggestionIndex];
