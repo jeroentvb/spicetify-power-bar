@@ -9,9 +9,8 @@
   "scripts": {
     "build": "spicetify-creator",
     "build:local": "spicetify-creator --out=dist --minify",
-    "build:prod": "npm run build:local && npm run copy:readme && npm run copy:docs",
-    "copy:readme": "copyfiles README.md dist/",
-    "copy:docs": "copyfiles docs/* dist/",
+    "build:prod": "npm run build:local && npm run copy:docs",
+    "copy:docs": "copyfiles README.md docs/* dist/",
     "watch": "spicetify-creator --watch",
     "lint": "eslint .",
     "lint:fix": "eslint --fix --ext .ts,.tsx ."
