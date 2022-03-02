@@ -6,6 +6,7 @@ import classnames from 'classnames';
 import scrollIntoViewIfNeeded from '../utils/scroll-into-view';
 import navigateUsingUri from '../utils/navigate-using-uri';
 import search from '../services/search';
+import showWhatsNew from '../services/whats-new';
 import Suggestions from './Suggestions';
 import { IS_INPUT_REGEX } from '../constants';
 
@@ -86,6 +87,8 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
          }
       });
       this.settings.pushSettings();
+
+      showWhatsNew();
    }
 
    componentDidMount() {
