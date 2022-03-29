@@ -5,7 +5,7 @@ import PowerBar from './components/PowerBar';
 import './assets/css/styles.scss';
 
 async function main() {
-   while (!Spicetify?.Platform || !Spicetify?.CosmosAsync) {
+   while (!Spicetify?.Platform || !Spicetify?.CosmosAsync || !Spicetify?.Player) {
       await new Promise(resolve => setTimeout(resolve, 100));
    }
 
