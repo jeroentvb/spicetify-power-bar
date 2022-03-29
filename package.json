@@ -24,7 +24,7 @@
     "copyfiles": "^2.4.1",
     "eslint": "^8.9.0",
     "eslint-plugin-react": "^7.28.0",
-    "spicetify-creator": "^1.0.8"
+    "spicetify-creator": "^1.0.9"
   },
   "dependencies": {
     "classnames": "^2.3.1",
