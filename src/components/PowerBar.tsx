@@ -140,7 +140,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
    onInput: KeyboardEventHandler<HTMLInputElement> = (event) => {
       if (this.isActivationKeyCombo(event.nativeEvent)) return;
 
-      const { currentTarget, key } = event;
+      const { currentTarget, key, shiftKey } = event;
       let trimmedValue = currentTarget.value.trim();
       if (IS_INPUT_REGEX.test(key)) trimmedValue = trimmedValue + key;
 
@@ -164,6 +164,33 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       if (key === 'ArrowDown') {
          event.preventDefault();
          this.selectedSuggestionIndex++;
+         return;
+      }
+
+      if (key === 'Tab' && shiftKey) {
+         // Todo document this shit
+         event.preventDefault();
+
+         const currentSuggestionType = this.suggestions[this.selectedSuggestionIndex].type;
+         let nextSuggestionIndex: number | undefined = undefined;
+         let i = this.selectedSuggestionIndex;
+
+         while (!nextSuggestionIndex) {
+            // Tab from first to last suggestion type
+            if (i === -1) i = this.suggestions.length - 1; // Js array numbering..
+            const suggestion = this.suggestions[i];
+
+            if (suggestion.type !== currentSuggestionType) {
+               // By default this gets the last suggestion of the different category type, so will need to jump to the first one.
+               nextSuggestionIndex = i - (this.settings.getFieldValue<number>(RESULTS_PER_CATEGORY) - 1);
+               break;
+            }
+
+            i--;
+         }
+
+         this.selectedSuggestionIndex = nextSuggestionIndex;
+
          return;
       }
 
