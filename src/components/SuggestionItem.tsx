@@ -21,7 +21,9 @@ export default function SuggestionItem({ suggestion, onSuggestionClick, selected
          className={classnames('suggestion-item', { 'has-info': hasInfo, 'suggestion-item__active': selected })}
          onClick={() => onSuggestionClick(suggestion.uri)}
       >
-         <img src={imgSrc} alt={suggestion.name} className="suggestion-item__img" />
+         {imgSrc
+            ? <img src={imgSrc} alt={suggestion.name} className="suggestion-item__img" />
+            : <div className="suggestion-item__img"></div>}
          <div className="suggestion-item__text">
             <span>{suggestion.name}</span>
             {hasInfo && <span>{ suggestion.artists?.map(artist => artist.name).join(', ') }</span>}
