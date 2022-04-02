@@ -1,5 +1,6 @@
 const CHANGE_NOTES = `
-* Fix an issue where the power-bar sometimes would not show after pressing the activation key combo
+* Handle missing (artist) images better
+* Add shift+tab functionality to jump back a suggestion category in search
 `;
 
 export default CHANGE_NOTES;
