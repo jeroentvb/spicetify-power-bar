@@ -8,11 +8,10 @@ import navigateUsingUri from '../utils/navigate-using-uri';
 import search from '../services/search';
 import showWhatsNew from '../services/whats-new';
 import Suggestions from './Suggestions';
-import { IS_INPUT_REGEX } from '../constants';
 
 import type { ICategorizedSuggestion, ISuggestion } from '../types/suggestions.model';
 import type { SuggestionClickEmitEvent } from '../types/custom-events.model';
-import { KEY_COMBO, MODIFIER_KEYS, PLAY_IMMEDIATELY, RESULTS_PER_CATEGORY } from '../constants';
+import { IS_INPUT_REGEX, KEY_COMBO, MODIFIER_KEYS, PLAY_IMMEDIATELY, PLAY_WITHOUT_NAV, RESULTS_PER_CATEGORY } from '../constants';
 
 interface LocalState {
    active: boolean;
@@ -70,7 +69,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
             description: 'Activation key combo. First key needs to be a modifier (shift, ctrl, alt or cmd/windows key).',
             defaultValue: [this.isMac ? 'altKey' : 'ctrlKey', 'Space'],
             events: {
-               onKeyDown: this.handleSettingsInput,
+               onKeyDown: this.handleSettingsInputKeyCombo,
                onBlur: (e) => {
                   const currentKeyCombo: string[] = this.settings.getFieldValue(KEY_COMBO);
                   if (currentKeyCombo.length === 0) {
@@ -79,6 +78,11 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
                   }
                }
             }
+         },
+         [PLAY_WITHOUT_NAV]: {
+            type: 'toggle',
+            description: 'If the ctrl is held while selecting an item, play without navigating.',
+            defaultValue: false,
          },
          [PLAY_IMMEDIATELY]: {
             type: 'toggle',
@@ -110,15 +114,18 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
    }, 300);
 
    onSuggestionClick: SuggestionClickEmitEvent = (uri) => {
-      this.onSelectSuggestion(uri);
+      this.onSelectSuggestion(uri, false);
    };
 
-   onSelectSuggestion(uri: string) {
+   onSelectSuggestion(uri: string, ctrlKey: boolean) {
+      const playImmediatelyModifier: string = this.settings.getFieldValue(PLAY_WITHOUT_NAV)
       const playImmediately: string = this.settings.getFieldValue(PLAY_IMMEDIATELY);
-      if (playImmediately) Spicetify.Player.playUri(uri);
+      if (playImmediately || (playImmediatelyModifier && ctrlKey)) Spicetify.Player.playUri(uri);
 
-      navigateUsingUri(uri);
-      this.togglePowerBar();
+      if(!(playImmediatelyModifier && ctrlKey)) {
+         navigateUsingUri(uri);
+         this.togglePowerBar();
+      }
    }
 
    togglePowerBar() {
@@ -140,7 +147,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
    onInput: KeyboardEventHandler<HTMLInputElement> = (event) => {
       if (this.isActivationKeyCombo(event.nativeEvent)) return;
 
-      const { currentTarget, key, shiftKey } = event;
+      const { currentTarget, key, shiftKey, ctrlKey } = event;
       let trimmedValue = currentTarget.value.trim();
       if (IS_INPUT_REGEX.test(key)) trimmedValue = trimmedValue + key;
 
@@ -217,8 +224,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       if (key === 'Enter') {
          if (this.suggestions) {
             const suggestion = this.suggestions[this.selectedSuggestionIndex];
-            this.onSelectSuggestion(suggestion.uri);
-
+            this.onSelectSuggestion(suggestion.uri, ctrlKey);
             return;
          }
       }
@@ -234,7 +240,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       this.debouncedSearch();
    };
 
-   handleSettingsInput: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
+   handleSettingsInputKeyCombo: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
       e.preventDefault();
       e.stopPropagation();
       const { code } = e.nativeEvent;
