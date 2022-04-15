@@ -69,7 +69,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
             description: 'Activation key combo. First key needs to be a modifier (shift, ctrl, alt or cmd/windows key).',
             defaultValue: [this.isMac ? 'altKey' : 'ctrlKey', 'Space'],
             events: {
-               onKeyDown: this.handleSettingsInputKeyCombo,
+               onKeyDown: this.handleSettingsInput,
                onBlur: (e) => {
                   const currentKeyCombo: string[] = this.settings.getFieldValue(KEY_COMBO);
                   if (currentKeyCombo.length === 0) {
@@ -240,7 +240,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       this.debouncedSearch();
    };
 
-   handleSettingsInputKeyCombo: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
+   handleSettingsInput: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
       e.preventDefault();
       e.stopPropagation();
       const { code } = e.nativeEvent;
