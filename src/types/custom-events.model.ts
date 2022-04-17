@@ -1,1 +1,1 @@
-export type SuggestionClickEmitEvent = (uri: string) => void;
+export type SuggestionClickEmitEvent = (uri: string, ctrlKeyPressed: boolean) => void;

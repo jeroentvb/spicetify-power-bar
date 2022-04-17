@@ -19,7 +19,7 @@ export default function SuggestionItem({ suggestion, onSuggestionClick, selected
    return (
       <li
          className={classnames('suggestion-item', { 'has-info': hasInfo, 'suggestion-item__active': selected })}
-         onClick={() => onSuggestionClick(suggestion.uri)}
+         onClick={(e) => onSuggestionClick(suggestion.uri, e.ctrlKey)}
       >
          {imgSrc
             ? <img src={imgSrc} alt={suggestion.name} className="suggestion-item__img" />
