@@ -108,15 +108,15 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       this.selectedSuggestionIndex = 0;
    }, 300);
 
-   onSuggestionClick: SuggestionClickEmitEvent = (uri, ctrlKeyPressed) => {
-      this.onSelectSuggestion(uri, ctrlKeyPressed);
+   onSuggestionClick: SuggestionClickEmitEvent = (uri, ctrlKey) => {
+      this.onSelectSuggestion(uri, ctrlKey);
    };
 
-   onSelectSuggestion(uri: string, ctrlKeyPressed: boolean) {
+   onSelectSuggestion(uri: string, ctrlKey: boolean) {
       const playImmediately: string = this.settings.getFieldValue(PLAY_IMMEDIATELY);
       if (playImmediately) {
          Spicetify.Player.playUri(uri);
-         if(ctrlKeyPressed) return;
+         if(ctrlKey) return;
       }
 
       navigateUsingUri(uri);
