@@ -11,7 +11,7 @@ import Suggestions from './Suggestions';
 
 import type { ICategorizedSuggestion, ISuggestion } from '../types/suggestions.model';
 import type { SuggestionClickEmitEvent } from '../types/custom-events.model';
-import { IS_INPUT_REGEX, KEY_COMBO, MODIFIER_KEYS, PLAY_IMMEDIATELY, PLAY_WITHOUT_NAV, RESULTS_PER_CATEGORY } from '../constants';
+import { IS_INPUT_REGEX, KEY_COMBO, MODIFIER_KEYS, PLAY_IMMEDIATELY, RESULTS_PER_CATEGORY } from '../constants';
 
 interface LocalState {
    active: boolean;
@@ -79,11 +79,6 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
                }
             }
          },
-         [PLAY_WITHOUT_NAV]: {
-            type: 'toggle',
-            description: 'If the ctrl is held while selecting an item, play without navigating.',
-            defaultValue: false,
-         },
          [PLAY_IMMEDIATELY]: {
             type: 'toggle',
             description: 'Play suggestion on click',
@@ -118,14 +113,14 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
    };
 
    onSelectSuggestion(uri: string, ctrlKey: boolean) {
-      const playImmediatelyModifier: string = this.settings.getFieldValue(PLAY_WITHOUT_NAV)
       const playImmediately: string = this.settings.getFieldValue(PLAY_IMMEDIATELY);
-      if (playImmediately || (playImmediatelyModifier && ctrlKey)) Spicetify.Player.playUri(uri);
-
-      if(!(playImmediatelyModifier && ctrlKey)) {
-         navigateUsingUri(uri);
-         this.togglePowerBar();
+      if (playImmediately) {
+         Spicetify.Player.playUri(uri);
+         if(ctrlKey) return;
       }
+
+      navigateUsingUri(uri);
+      this.togglePowerBar();
    }
 
    togglePowerBar() {
