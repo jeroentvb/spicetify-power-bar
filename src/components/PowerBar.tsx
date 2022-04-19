@@ -81,7 +81,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
          },
          [PLAY_IMMEDIATELY]: {
             type: 'toggle',
-            description: 'Play suggestion on click',
+            description: 'Play suggestion on click/enter. \n Hold ctrl (windows/linux) or cmd (mac) to prevent navigating to the suggestion.',
             defaultValue: false,
          }
       });
@@ -108,15 +108,16 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       this.selectedSuggestionIndex = 0;
    }, 300);
 
-   onSuggestionClick: SuggestionClickEmitEvent = (uri, ctrlKey) => {
-      this.onSelectSuggestion(uri, ctrlKey);
+   onSuggestionClick: SuggestionClickEmitEvent = (uri, e) => {
+      this.onSelectSuggestion(uri, e);
    };
 
-   onSelectSuggestion(uri: string, ctrlKey: boolean) {
+   onSelectSuggestion(uri: string, { metaKey, ctrlKey }: KeyboardEvent | MouseEvent) {
       const playImmediately: string = this.settings.getFieldValue(PLAY_IMMEDIATELY);
       if (playImmediately) {
          Spicetify.Player.playUri(uri);
-         if(ctrlKey) return;
+
+         if (this.isMac && metaKey || !this.isMac && ctrlKey) return;
       }
 
       navigateUsingUri(uri);
@@ -142,7 +143,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
    onInput: KeyboardEventHandler<HTMLInputElement> = (event) => {
       if (this.isActivationKeyCombo(event.nativeEvent)) return;
 
-      const { currentTarget, key, shiftKey, ctrlKey } = event;
+      const { currentTarget, key, shiftKey } = event;
       let trimmedValue = currentTarget.value.trim();
       if (IS_INPUT_REGEX.test(key)) trimmedValue = trimmedValue + key;
 
@@ -219,7 +220,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       if (key === 'Enter') {
          if (this.suggestions) {
             const suggestion = this.suggestions[this.selectedSuggestionIndex];
-            this.onSelectSuggestion(suggestion.uri, ctrlKey);
+            this.onSelectSuggestion(suggestion.uri, event.nativeEvent);
             return;
          }
       }
@@ -241,7 +242,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       const { code } = e.nativeEvent;
       const currentKeyCombo: string[] = this.settings.getFieldValue(KEY_COMBO);
 
-      switch(code) {
+      switch (code) {
          case 'Backspace': {
             this.settings.setFieldValue(KEY_COMBO, currentKeyCombo.slice(0, -1));
             e.currentTarget.value = e.currentTarget.value.split(',').slice(0, -1).join('');
