@@ -8,11 +8,10 @@ import navigateUsingUri from '../utils/navigate-using-uri';
 import search from '../services/search';
 import showWhatsNew from '../services/whats-new';
 import Suggestions from './Suggestions';
-import { IS_INPUT_REGEX } from '../constants';
 
 import type { ICategorizedSuggestion, ISuggestion } from '../types/suggestions.model';
 import type { SuggestionClickEmitEvent } from '../types/custom-events.model';
-import { KEY_COMBO, MODIFIER_KEYS, PLAY_IMMEDIATELY, RESULTS_PER_CATEGORY } from '../constants';
+import { IS_INPUT_REGEX, KEY_COMBO, MODIFIER_KEYS, PLAY_IMMEDIATELY, RESULTS_PER_CATEGORY } from '../constants';
 
 interface LocalState {
    active: boolean;
@@ -82,7 +81,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
          },
          [PLAY_IMMEDIATELY]: {
             type: 'toggle',
-            description: 'Play suggestion on click',
+            description: 'Play suggestion on click/enter. \n Hold ctrl (windows/linux) or cmd (mac) to prevent navigating to the suggestion.',
             defaultValue: false,
          }
       });
@@ -109,13 +108,17 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       this.selectedSuggestionIndex = 0;
    }, 300);
 
-   onSuggestionClick: SuggestionClickEmitEvent = (uri) => {
-      this.onSelectSuggestion(uri);
+   onSuggestionClick: SuggestionClickEmitEvent = (uri, e) => {
+      this.onSelectSuggestion(uri, e);
    };
 
-   onSelectSuggestion(uri: string) {
+   onSelectSuggestion(uri: string, { metaKey, ctrlKey }: KeyboardEvent | MouseEvent) {
       const playImmediately: string = this.settings.getFieldValue(PLAY_IMMEDIATELY);
-      if (playImmediately) Spicetify.Player.playUri(uri);
+      if (playImmediately) {
+         Spicetify.Player.playUri(uri);
+
+         if (this.isMac && metaKey || !this.isMac && ctrlKey) return;
+      }
 
       navigateUsingUri(uri);
       this.togglePowerBar();
@@ -217,8 +220,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       if (key === 'Enter') {
          if (this.suggestions) {
             const suggestion = this.suggestions[this.selectedSuggestionIndex];
-            this.onSelectSuggestion(suggestion.uri);
-
+            this.onSelectSuggestion(suggestion.uri, event.nativeEvent);
             return;
          }
       }
@@ -240,7 +242,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       const { code } = e.nativeEvent;
       const currentKeyCombo: string[] = this.settings.getFieldValue(KEY_COMBO);
 
-      switch(code) {
+      switch (code) {
          case 'Backspace': {
             this.settings.setFieldValue(KEY_COMBO, currentKeyCombo.slice(0, -1));
             e.currentTarget.value = e.currentTarget.value.split(',').slice(0, -1).join('');
