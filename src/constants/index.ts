@@ -7,6 +7,4 @@ export const RESULTS_PER_CATEGORY = 'results-per-category';
 
 export const KEY_COMBO = 'key-combo';
 
-export const PLAY_IMMEDIATELY = 'play-immediately';
-
 export const MODIFIER_KEYS: ['Shift', 'Control', 'Alt', 'Meta'] = ['Shift', 'Control', 'Alt', 'Meta'];

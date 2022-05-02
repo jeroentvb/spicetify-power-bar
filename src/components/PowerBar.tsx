@@ -11,7 +11,7 @@ import Suggestions from './Suggestions';
 
 import type { ICategorizedSuggestion, ISuggestion } from '../types/suggestions.model';
 import type { SuggestionClickEmitEvent } from '../types/custom-events.model';
-import { IS_INPUT_REGEX, KEY_COMBO, MODIFIER_KEYS, PLAY_IMMEDIATELY, RESULTS_PER_CATEGORY } from '../constants';
+import { IS_INPUT_REGEX, KEY_COMBO, MODIFIER_KEYS, RESULTS_PER_CATEGORY } from '../constants';
 
 interface LocalState {
    active: boolean;
@@ -57,7 +57,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
          selectedSuggestionUri: '',
       };
 
-      this.settings = new SettingsSection('Power bar settings', 'power-bar-settings', {
+      this.settings = new SettingsSection('Power bar', 'power-bar-settings', {
          [RESULTS_PER_CATEGORY]: {
             type: 'dropdown',
             description: 'Show amount of suggestions per category',
@@ -79,11 +79,6 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
                }
             }
          },
-         [PLAY_IMMEDIATELY]: {
-            type: 'toggle',
-            description: 'Play suggestion on click/enter. \n Hold ctrl (windows/linux) or cmd (mac) to prevent navigating to the suggestion.',
-            defaultValue: false,
-         }
       });
       this.settings.pushSettings();
 
@@ -113,11 +108,9 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
    };
 
    onSelectSuggestion(uri: string, { metaKey, ctrlKey }: KeyboardEvent | MouseEvent) {
-      const playImmediately: string = this.settings.getFieldValue(PLAY_IMMEDIATELY);
-      if (playImmediately) {
+      if (this.isMac && metaKey || !this.isMac && ctrlKey) {
          Spicetify.Player.playUri(uri);
-
-         if (this.isMac && metaKey || !this.isMac && ctrlKey) return;
+         return;
       }
 
       navigateUsingUri(uri);
