@@ -30,7 +30,7 @@
     "classnames": "^2.3.1",
     "lodash-es": "^4.17.21",
     "react-markdown": "^8.0.0",
-    "spcr-settings": "^1.0.2",
+    "spcr-settings": "^1.1.0",
     "spcr-whats-new": "^1.0.1"
   }
 }
