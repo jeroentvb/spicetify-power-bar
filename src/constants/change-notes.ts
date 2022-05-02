@@ -1,6 +1,7 @@
 const CHANGE_NOTES = `
-* Add ability to play an item without navigating.
-   - To use this enable 'play immediately' in settings and hold \`ctrl\` (windows/linux) or \`cmd\` (mac) when selecting an item to prevent navigating to it.
+* Remove 'play immediately' setting
+   - Default behaviour is navigating to the selected suggestion
+   - To just play and not navigate, hold \`ctrl\` (windows/linux) or \`cmd\` (mac) when selecting it
 `;
 
 export default CHANGE_NOTES;
