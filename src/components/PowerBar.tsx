@@ -11,7 +11,7 @@ import Suggestions from './Suggestions';
 
 import type { ICategorizedSuggestion, ISuggestion } from '../types/suggestions.model';
 import type { SuggestionClickEmitEvent } from '../types/custom-events.model';
-import { IS_INPUT_REGEX, KEY_COMBO, MODIFIER_KEYS, RESULTS_PER_CATEGORY } from '../constants';
+import { ADD_TO_QUEUE, IS_INPUT_REGEX, KEY_COMBO, MODIFIER_KEYS, RESULTS_PER_CATEGORY } from '../constants';
 
 interface LocalState {
    active: boolean;
@@ -79,6 +79,11 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
                }
             }
          },
+         [ADD_TO_QUEUE]: {
+            type: 'toggle',
+            description: 'Add suggestion to queue instead of playing it when holding ctrl (windows/linux) or cmd (mac)',
+            defaultValue: false,
+         }
       });
       this.settings.pushSettings();
 
@@ -107,8 +112,18 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       this.onSelectSuggestion(uri, e);
    };
 
-   onSelectSuggestion(uri: string, { metaKey, ctrlKey }: KeyboardEvent | MouseEvent) {
+   async onSelectSuggestion(uri: string, { metaKey, ctrlKey }: KeyboardEvent | MouseEvent) {
+      // Play item/add to queue if modifier key is held
       if (this.isMac && metaKey || !this.isMac && ctrlKey) {
+         const addToQueue = this.settings.getFieldValue(ADD_TO_QUEUE);
+         if (addToQueue) {
+            await Spicetify.CosmosAsync.post(`https://api.spotify.com/v1/me/player/queue?uri=${uri}`);
+
+            this.togglePowerBar();
+            Spicetify.showNotification('Added to queue');
+            return;
+         }
+
          Spicetify.Player.playUri(uri);
          return;
       }
