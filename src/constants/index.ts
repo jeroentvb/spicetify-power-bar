@@ -7,4 +7,6 @@ export const RESULTS_PER_CATEGORY = 'results-per-category';
 
 export const KEY_COMBO = 'key-combo';
 
+export const ADD_TO_QUEUE = 'add-to-queue';
+
 export const MODIFIER_KEYS: ['Shift', 'Control', 'Alt', 'Meta'] = ['Shift', 'Control', 'Alt', 'Meta'];

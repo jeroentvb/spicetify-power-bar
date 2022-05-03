@@ -43,3 +43,4 @@ Settings for the power bar can be found on spotify's settings page. There are se
   * Alt
   * Cmd/Windows
 * **Amount of suggestions per category**. How many suggestions to show per per category. Default is 3. Technically this can be set to 50, but in the power bar it's limited to 10 per category due to it being a better user experience.
+* **Add to queue**. Add the selected suggestion to the queue instead of playing it. When enabled hold `ctrl` (windows/linux) or `cmd` (macOs) when selecting the suggestion to add it to the playback queue. 
