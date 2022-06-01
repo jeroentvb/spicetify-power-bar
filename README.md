@@ -12,7 +12,7 @@ Spotlight-like quick search bar to navigate to tracks, albums, artists and playl
 Install via [spicetify-marketplace](https://github.com/CharlieS1103/spicetify-marketplace)
 
 Or the manual way:  
-Copy [power-bar.js](dist/power-bar.js) to the spicetify extenstions folder
+Copy [power-bar.js](https://github.com/jeroentvb/spicetify-power-bar/blob/dist/power-bar.js) (from the [dist branch](https://github.com/jeroentvb/spicetify-power-bar/tree/dist)) to the spicetify extenstions folder
 | **Platform**    | **Path**                               |
 |-----------------|----------------------------------------|
 | **MacOs/Linux** | `~/.config/spicetify/Extensions`       |
