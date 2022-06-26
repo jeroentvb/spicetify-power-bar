@@ -1,8 +1,5 @@
 const CHANGE_NOTES = `
-* Remove 'play immediately' setting in favour of 'add to queue'
-   - Default behaviour is navigating to the selected suggestion
-   - To just play and not navigate, hold \`ctrl\` (windows/linux) or \`cmd\` (mac) when selecting it
-   - To add to queue instad of playing the item, enable 'add to queue' and hold hold \`ctrl\` (windows/linux) or \`cmd\` (mac)
+Make it easier to change to colors of the power bar using css. See the readme for more details: [https://github.com/jeroentvb/spicetify-power-bar/blob/master/README.md](https://github.com/jeroentvb/spicetify-power-bar/blob/master/README.md#theme)
 `;
 
 export default CHANGE_NOTES;
