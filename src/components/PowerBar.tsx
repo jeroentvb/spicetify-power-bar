@@ -64,7 +64,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       showWhatsNew();
    }
 
-   async componentDidMount() {
+   componentDidMount() {
       document.addEventListener('keydown', (e) => {
          if (!this.isActivationKeyCombo(e)) return;
 
