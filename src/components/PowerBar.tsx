@@ -8,6 +8,7 @@ import navigateUsingUri from '../utils/navigate-using-uri';
 import search from '../services/search';
 import showWhatsNew from '../services/whats-new';
 import Suggestions from './Suggestions';
+import getSettings from '../services/get-settings';
 
 import type { ICategorizedSuggestion, ISuggestion } from '../types/suggestions.model';
 import type { SuggestionClickEmitEvent } from '../types/custom-events.model';
@@ -57,34 +58,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
          selectedSuggestionUri: '',
       };
 
-      this.settings = new SettingsSection('Power bar', 'power-bar-settings', {
-         [RESULTS_PER_CATEGORY]: {
-            type: 'dropdown',
-            description: 'Show amount of suggestions per category',
-            defaultValue: '3',
-            options: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
-         },
-         [KEY_COMBO]: {
-            type: 'input',
-            description: 'Activation key combo. First key needs to be a modifier (shift, ctrl, alt or cmd/windows key).',
-            defaultValue: [this.isMac ? 'altKey' : 'ctrlKey', 'Space'],
-            events: {
-               onKeyDown: this.handleSettingsInput,
-               onBlur: (e) => {
-                  const currentKeyCombo: string[] = this.settings.getFieldValue(KEY_COMBO);
-                  if (currentKeyCombo.length === 0) {
-                     e.currentTarget.placeholder = 'Please set a valid key combo';
-                     Spicetify.showNotification('Please set a valid key combo for the power bar');
-                  }
-               }
-            }
-         },
-         [ADD_TO_QUEUE]: {
-            type: 'toggle',
-            description: 'Add suggestion to queue instead of playing it when holding ctrl (windows/linux) or cmd (mac)',
-            defaultValue: false,
-         }
-      });
+      this.settings = getSettings(this);
       this.settings.pushSettings();
 
       showWhatsNew();
