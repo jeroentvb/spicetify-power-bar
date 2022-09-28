@@ -1,6 +1,7 @@
 import React, { KeyboardEventHandler } from 'react';
 import { debounce } from 'lodash-es';
 import { SettingsSection } from 'spcr-settings';
+import { showErrorNotification } from 'spcr-error-notification';
 import classnames from 'classnames';
 
 import scrollIntoViewIfNeeded from '../utils/scroll-into-view';
@@ -91,10 +92,17 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       if (this.isMac && metaKey || !this.isMac && ctrlKey) {
          const addToQueue = this.settings.getFieldValue(ADD_TO_QUEUE);
          if (addToQueue) {
-            await Spicetify.CosmosAsync.post(`https://api.spotify.com/v1/me/player/queue?uri=${uri}`);
+            try {
+               await Spicetify.CosmosAsync.post(`https://api.spotify.com/v1/me/player/queue?uri=${uri}`);
 
-            this.togglePowerBar();
-            Spicetify.showNotification('Added to queue');
+               this.togglePowerBar();
+               Spicetify.showNotification('Added to queue');
+            } catch (err) {
+               this.togglePowerBar();
+               showErrorNotification('Something went wrong');
+               console.error(err);
+            }
+
             return;
          }
 
