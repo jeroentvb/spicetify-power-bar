@@ -1,5 +1,5 @@
 const CHANGE_NOTES = `
-Make it easier to change to colors of the power bar using css. See the readme for more details: [https://github.com/jeroentvb/spicetify-power-bar/blob/master/README.md](https://github.com/jeroentvb/spicetify-power-bar/blob/master/README.md#theme)
+Improve error handling when adding an item to the queue fails.
 `;
 
 export default CHANGE_NOTES;
