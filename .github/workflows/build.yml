@@ -2,7 +2,7 @@ name: Push new version to dist branch
 on:
   push:	
     branches:	
-      - master
+      - main
 
 jobs:
   deploy:
