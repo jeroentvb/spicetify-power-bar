@@ -1,7 +1,6 @@
 import React, { KeyboardEventHandler } from 'react';
 import { debounce } from 'lodash-es';
 import { SettingsSection } from 'spcr-settings';
-import { showErrorNotification } from 'spcr-error-notification';
 import classnames from 'classnames';
 
 import scrollIntoViewIfNeeded from '../utils/scroll-into-view';
@@ -99,7 +98,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
                Spicetify.showNotification('Added to queue');
             } catch (err) {
                this.togglePowerBar();
-               showErrorNotification('Something went wrong');
+               Spicetify.showNotification('Something went wrong', true);
                console.error(err);
             }
 
