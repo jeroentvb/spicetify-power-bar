@@ -17,7 +17,7 @@ Copy [power-bar.js](https://github.com/jeroentvb/spicetify-power-bar/blob/dist/p
 | **Platform**    | **Path**                               |
 |-----------------|----------------------------------------|
 | **MacOs/Linux** | `~/.config/spicetify/Extensions`       |
-| **Windows**     | `%userprofile%/.spicetify/Extensions/` |
+| **Windows**     | `%appdata%\spicetify\Extensions` |
 
 Run the following commands
 ```sh
