@@ -2,11 +2,11 @@ import React from 'react';
 import firstLetterUpperCase from '../utils/first-letter-upper-case';
 
 import SuggestionItem from './SuggestionItem';
-import type { ICategorizedSuggestion } from '../types/suggestions.model';
+import type { ICategorizedSuggestions } from '../types/suggestions.model';
 import type { SuggestionClickEmitEvent } from '../types/custom-events.model';
 
 interface ISuggestionsComponentProps {
-    categorizedSuggestions: ICategorizedSuggestion[];
+    categorizedSuggestions: ICategorizedSuggestions[];
     onSuggestionClick: SuggestionClickEmitEvent;
     selectedSuggestionUri: string;
 }

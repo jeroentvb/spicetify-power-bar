@@ -10,13 +10,13 @@ import showWhatsNew from '../services/whats-new';
 import Suggestions from './Suggestions';
 import getSettings from '../services/get-settings';
 
-import type { ICategorizedSuggestion, ISuggestion } from '../types/suggestions.model';
+import type { ICategorizedSuggestions, ISuggestion } from '../types/suggestions.model';
 import type { SuggestionClickEmitEvent } from '../types/custom-events.model';
 import { ADD_TO_QUEUE, IS_INPUT_REGEX, KEY_COMBO, MODIFIER_KEYS, RESULTS_PER_CATEGORY } from '../constants';
 
 interface LocalState {
    active: boolean;
-   categorizedSuggestions: ICategorizedSuggestion[];
+   categorizedSuggestions: ICategorizedSuggestions[];
    selectedSuggestionUri: string;
 }
 
@@ -104,7 +104,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
                      handleSuccess();
                      break;
                   case 'album': {
-                     const album: { items: { uri: string }[] } = await Spicetify.CosmosAsync.get(`https://api.spotify.com/v1/albums/${id}/tracks?limit=50`);
+                     const album: SpotifyApi.AlbumTracksResponse = await Spicetify.CosmosAsync.get(`https://api.spotify.com/v1/albums/${id}/tracks?limit=50`);
                      await Promise.all(album.items.map(async ({ uri }) => {
                         await Spicetify.CosmosAsync.post(`https://api.spotify.com/v1/me/player/queue?uri=${uri}`);
                      }));
