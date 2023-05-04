@@ -86,26 +86,45 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       this.onSelectSuggestion(uri, e);
    };
 
-   async onSelectSuggestion(uri: string, { metaKey, ctrlKey }: KeyboardEvent | MouseEvent) {
+   async onSelectSuggestion({ id, uri, type }: ISuggestion, { metaKey, ctrlKey }: KeyboardEvent | MouseEvent) {
       // Play item/add to queue if modifier key is held
       if (this.isMac && metaKey || !this.isMac && ctrlKey) {
          const addToQueue = this.settings.getFieldValue(ADD_TO_QUEUE);
          if (addToQueue) {
-            try {
-               await Spicetify.CosmosAsync.post(`https://api.spotify.com/v1/me/player/queue?uri=${uri}`);
-
-               this.togglePowerBar();
+            const handleSuccess = () => {
                Spicetify.showNotification('Added to queue');
+               this.togglePowerBar();
+            };
+
+            try {
+               switch(type) {
+                  case 'track':
+                     await Spicetify.CosmosAsync.post(`https://api.spotify.com/v1/me/player/queue?uri=${uri}`);
+
+                     handleSuccess();
+                     break;
+                  case 'album': {
+                     const album: { items: { uri: string }[] } = await Spicetify.CosmosAsync.get(`https://api.spotify.com/v1/albums/${id}/tracks?limit=50`);
+                     await Promise.all(album.items.map(async ({ uri }) => {
+                        await Spicetify.CosmosAsync.post(`https://api.spotify.com/v1/me/player/queue?uri=${uri}`);
+                     }));
+
+                     handleSuccess();
+                     break;
+                  }
+                  default:
+                     Spicetify.showNotification('This item can\'t be added to the queue', true);
+                     break;
+               }
             } catch (err) {
                this.togglePowerBar();
                Spicetify.showNotification('Something went wrong', true);
                console.error(err);
             }
-
-            return;
+         } else {
+            Spicetify.Player.playUri(uri);
          }
 
-         Spicetify.Player.playUri(uri);
          return;
       }
 
@@ -209,7 +228,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       if (key === 'Enter') {
          if (this.suggestions) {
             const suggestion = this.suggestions[this.selectedSuggestionIndex];
-            this.onSelectSuggestion(suggestion.uri, event.nativeEvent);
+            this.onSelectSuggestion(suggestion, event.nativeEvent);
             return;
          }
       }
