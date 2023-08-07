@@ -8,7 +8,7 @@ import navigateUsingUri from '../utils/navigate-using-uri';
 import search from '../services/search';
 import showWhatsNew from '../services/whats-new';
 import Suggestions from './Suggestions';
-import getSettings from '../services/get-settings';
+import {getSettings} from '../services/get-settings';
 
 import type { ICategorizedSuggestions, ISuggestion } from '../types/suggestions.model';
 import type { SuggestionClickEmitEvent } from '../types/custom-events.model';
