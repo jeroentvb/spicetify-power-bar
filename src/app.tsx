@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 import PowerBar from './components/PowerBar';
 
 import './assets/css/styles.scss';
@@ -11,7 +11,8 @@ async function main() {
 
    const container = document.createElement('div');
    container.style.display = 'block';
-   ReactDOM.render(<PowerBar/>, container);
+   const root = ReactDOM.createRoot(container);
+   root.render(<PowerBar/>);
 
    document.body.appendChild(container);
 }
