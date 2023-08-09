@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
+import ReactDOM from 'react-dom';
 import PowerBar from './components/PowerBar';
 
 import './assets/css/styles.scss';
@@ -11,8 +11,9 @@ async function main() {
 
    const container = document.createElement('div');
    container.style.display = 'block';
-   const root = ReactDOM.createRoot(container);
-   root.render(<PowerBar/>);
+   // Spotify still uses React v17, so this rule doesn't apply yet
+   // eslint-disable-next-line react/no-deprecated
+   ReactDOM.render(<PowerBar/>, container);
 
    document.body.appendChild(container);
 }
