@@ -226,6 +226,11 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       }
 
       if (key === 'Enter') {
+         if (trimmedValue.startsWith('spotify:')) {
+            navigateUsingUri(trimmedValue);
+            this.togglePowerBar();
+            return;
+         }
          if (this.suggestions) {
             const suggestion = this.suggestions[this.selectedSuggestionIndex];
             this.onSelectSuggestion(suggestion, event.nativeEvent);
