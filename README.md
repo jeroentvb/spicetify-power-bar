@@ -36,6 +36,8 @@ In the suggestion list you can jump back and forth between categories by pressin
 
 To play a suggestion immediately (not navigating to it), hold `ctrl` (windows/linux) or `cmd` (macOs) when selecting the suggestion.
 
+It's also possible to navigate using a Spotify URI. Simply paste it in the power-bar and press enter to navigate to the URI destination.
+
 ## Settings
 Settings for the power bar can be found on spotify's settings page. There are settings for the following things:
 * **Activation key combo**. Defaults are `alt+space` on MacOs, and `ctrl+space` on other operating systems. Can be changed to anything in to following format: `modifier+key`. A modifier key is one of the following: 
