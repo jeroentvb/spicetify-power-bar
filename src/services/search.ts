@@ -35,9 +35,6 @@ function parse(res: SpotifyApi.SearchResponse): ISearchReturnType {
          return final;
       }, [] as ICategorizedSuggestions[]);
 
-   console.log(categorizedSuggestions);
-
-
    const suggestions = categorizedSuggestions.flatMap((category) => category.items as ISuggestion[]);
 
    return { categorizedSuggestions, suggestions };

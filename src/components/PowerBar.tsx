@@ -34,6 +34,8 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
    settings: SettingsSection;
 
    set selectedSuggestionIndex(index: number) {
+      if (!this.suggestions.length) return;
+
       if (index === -1) index = this.suggestions.length - 1;
       if (index === this.suggestions.length) index = 0;
       this._selectedSuggestionIndex = index;
