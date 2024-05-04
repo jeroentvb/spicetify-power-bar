@@ -88,7 +88,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       this.onSelectSuggestion(uri, e);
    };
 
-   async onSelectSuggestion({ id, uri, type }: ISuggestion, { metaKey, ctrlKey }: KeyboardEvent | MouseEvent) {
+   async onSelectSuggestion({ uri, type }: ISuggestion, { metaKey, ctrlKey }: KeyboardEvent | MouseEvent) {
       // Play item/add to queue if modifier key is held
       if (this.isMac && metaKey || !this.isMac && ctrlKey) {
          const addToQueue = this.settings.getFieldValue(ADD_TO_QUEUE);
@@ -100,28 +100,34 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
 
             try {
                switch(type) {
-                  case 'track':
-                     await Spicetify.CosmosAsync.post(`https://api.spotify.com/v1/me/player/queue?uri=${uri}`);
-
-                     handleSuccess();
-                     break;
-                  case 'album': {
-                     const album: SpotifyApi.AlbumTracksResponse = await Spicetify.CosmosAsync.get(`https://api.spotify.com/v1/albums/${id}/tracks?limit=50`);
-                     await Promise.all(album.items.map(async ({ uri }) => {
-                        await Spicetify.CosmosAsync.post(`https://api.spotify.com/v1/me/player/queue?uri=${uri}`);
-                     }));
+                  case 'track': {
+                     // await Spicetify.CosmosAsync.post(`https://api.spotify.com/v1/me/player/queue?uri=${uri}`);
+                     await Spicetify.addToQueue([{ uri }]);
 
                      handleSuccess();
                      break;
                   }
-                  default:
+                  case 'album': {
+                     // const album: SpotifyApi.AlbumTracksResponse = await Spicetify.CosmosAsync.get(`https://api.spotify.com/v1/albums/${id}/tracks?limit=50`);
+                     // await Promise.all(album.items.map(async ({ uri }) => {
+                     //    await Spicetify.CosmosAsync.post(`https://api.spotify.com/v1/me/player/queue?uri=${uri}`);
+                     // }));
+                     const res = await Spicetify.GraphQL.Request(Spicetify.GraphQL.Definitions.getAlbumNameAndTracks, { uri: uri, locale: Spicetify.Locale.getLocale(), offset: 0, limit: 100 });
+                     const trackObjects: { uri: string }[] = res.data.albumUnion.tracks.items.map((item: { track: { uri: string } }) => item.track);
+                     await Spicetify.addToQueue(trackObjects);
+
+                     handleSuccess();
+                     break;
+                  }
+                  default: {
                      Spicetify.showNotification('This item can\'t be added to the queue', true);
                      break;
+                  }
                }
             } catch (err) {
                this.togglePowerBar();
                Spicetify.showNotification('Something went wrong', true);
-               console.error(err);
+               console.error('[power-bar] ', err);
             }
          } else {
             Spicetify.Player.playUri(uri);
