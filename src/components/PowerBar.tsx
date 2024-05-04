@@ -94,7 +94,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
          const addToQueue = this.settings.getFieldValue(ADD_TO_QUEUE);
          if (addToQueue) {
             const handleSuccess = () => {
-               Spicetify.showNotification('Added to queue');
+               Spicetify.showNotification(Spicetify.Platform.Translations['queue.added-to-queue']);
                this.togglePowerBar();
             };
 
@@ -126,7 +126,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
                }
             } catch (err) {
                this.togglePowerBar();
-               Spicetify.showNotification('Something went wrong', true);
+               Spicetify.showNotification(Spicetify.Platform.Translations['error-dialog.generic.header'], true);
                console.error('[power-bar] ', err);
             }
          } else {
@@ -312,7 +312,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
                   ref={this.searchInput}
                   type="text"
                   id="power-bar-search"
-                  placeholder="Search Spotify"
+                  placeholder={Spicetify.Platform.Translations['navbar.search']}
                   className={classnames({ 'has-suggestions': this.state.categorizedSuggestions.length > 0 })}
                   onKeyDown={this.onInput}
                />
