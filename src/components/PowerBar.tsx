@@ -160,8 +160,11 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       if (this.isActivationKeyCombo(event.nativeEvent)) return;
 
       const { currentTarget, key, shiftKey } = event;
-      let trimmedValue = currentTarget.value.trim();
+      let trimmedValue =  currentTarget.value.trim();
+      // This needs to be done because we're using the keydown event. On keydown, the value of the input hasn't been updated yet.
+      // It's needed to prevent tabbing out of the input field.
       if (IS_INPUT_REGEX.test(key)) trimmedValue = trimmedValue + key;
+      if (key === 'Backspace') trimmedValue = trimmedValue.slice(0, -1);
 
       // Clear input or hide power bar when esc is pressed
       if (key === 'Escape') {
@@ -246,7 +249,8 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
          }
       }
 
-      if (!trimmedValue || trimmedValue.length < 2) {
+      if (!trimmedValue || trimmedValue.length <= 2) {
+         this.previousSearchValue = '';
          this.clearSuggestions();
          return;
       }

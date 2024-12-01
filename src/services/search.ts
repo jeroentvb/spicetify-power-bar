@@ -10,7 +10,7 @@ export default async function search(searchQuery: string, limit: string): Promis
 function parse(res: SpotifyApi.SearchResponse): ISearchReturnType {
    const categorizedSuggestions = Object.entries(res)
       .filter(([_key, value]) => value.items.length > 0)
-      .map(([key, value]) => ({ type: key, items: value.items } as ICategorizedSuggestions))
+      .map(([key, value]) => ({ type: key, items: value.items.filter(Boolean) } as ICategorizedSuggestions))
       .reduce((final, item) => {
          // TODO surely there's a better way to do this..
          switch(item.type) {
