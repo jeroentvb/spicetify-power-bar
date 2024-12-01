@@ -1,5 +1,5 @@
 const CHANGE_NOTES = `
-Power-bar now uses translations for the selected language
+Improved handling of search queries
 `;
 
 export default CHANGE_NOTES;
