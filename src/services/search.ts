@@ -4,6 +4,14 @@ export default async function search(searchQuery: string, limit: string): Promis
    const query = encodeURIComponent(searchQuery.trim());
    const res: SpotifyApi.SearchResponse = await Spicetify.CosmosAsync.get(`https://api.spotify.com/v1/search?q=${query}&type=album,artist,playlist,track&limit=${limit}&include_external=audio`);
 
+   if (Object.hasOwn(res, 'error')) {
+      const msg = Object.hasOwn(res, 'message') ? (res as any).message : 'an unknown error occurred while searching';
+      Spicetify.showNotification(`Power Bar: ${msg}`, true);
+      console.error('Power bar search error:', res);
+
+      return { categorizedSuggestions: [], suggestions: [] };
+   }
+
    return parse(res);
 }
 
