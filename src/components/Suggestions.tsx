@@ -31,7 +31,7 @@ export default function Suggestions({ categorizedSuggestions, onSuggestionClick,
 
                   { items.map(item => (
                      <SuggestionItem
-                        key={item.id}
+                        key={item.uri}
                         suggestion={item}
                         selected={item.uri === selectedSuggestionUri}
                         onSuggestionClick={onSuggestionClick}

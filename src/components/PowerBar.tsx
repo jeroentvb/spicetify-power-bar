@@ -76,8 +76,8 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
    }
 
    debouncedSearch = debounce(async () => {
-      const limit: string = this.settings.getFieldValue(RESULTS_PER_CATEGORY);
-      const { categorizedSuggestions, suggestions } = await search(this.searchInput.current?.value as string, limit);
+      const limit: number = Number(this.settings.getFieldValue(RESULTS_PER_CATEGORY)) || 5;
+      const { categorizedSuggestions, suggestions } = await search(this.searchInput.current?.value as string, +limit);
 
       this.setState({ categorizedSuggestions });
       this.suggestions = suggestions;
@@ -88,7 +88,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       this.onSelectSuggestion(uri, e);
    };
 
-   async onSelectSuggestion({ uri, type }: ISuggestion, { metaKey, ctrlKey }: KeyboardEvent | MouseEvent) {
+   async onSelectSuggestion({ uri, __typename }: ISuggestion, { metaKey, ctrlKey }: KeyboardEvent | MouseEvent) {
       // Play item/add to queue if modifier key is held
       if (this.isMac && metaKey || !this.isMac && ctrlKey) {
          const addToQueue = this.settings.getFieldValue(ADD_TO_QUEUE);
@@ -99,19 +99,14 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
             };
 
             try {
-               switch(type) {
-                  case 'track': {
-                     // await Spicetify.CosmosAsync.post(`https://api.spotify.com/v1/me/player/queue?uri=${uri}`);
+               switch(__typename) {
+                  case 'Track': {
                      await Spicetify.addToQueue([{ uri }]);
 
                      handleSuccess();
                      break;
                   }
-                  case 'album': {
-                     // const album: SpotifyApi.AlbumTracksResponse = await Spicetify.CosmosAsync.get(`https://api.spotify.com/v1/albums/${id}/tracks?limit=50`);
-                     // await Promise.all(album.items.map(async ({ uri }) => {
-                     //    await Spicetify.CosmosAsync.post(`https://api.spotify.com/v1/me/player/queue?uri=${uri}`);
-                     // }));
+                  case 'Album': {
                      const res = await Spicetify.GraphQL.Request(Spicetify.GraphQL.Definitions.getAlbumNameAndTracks, { uri: uri, locale: Spicetify.Locale.getLocale(), offset: 0, limit: 100 });
                      const trackObjects: { uri: string }[] = res.data.albumUnion.tracks.items.map((item: { track: { uri: string } }) => item.track);
                      await Spicetify.addToQueue(trackObjects);
@@ -193,7 +188,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
          // Todo document this shit
          event.preventDefault();
 
-         const currentSuggestionType = this.suggestions[this.selectedSuggestionIndex].type;
+         const currentSuggestionType = this.suggestions[this.selectedSuggestionIndex].__typename;
          let nextSuggestionIndex: number | undefined = undefined;
          let i = this.selectedSuggestionIndex;
 
@@ -202,9 +197,11 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
             if (i === -1) i = this.suggestions.length - 1; // Js array numbering..
             const suggestion = this.suggestions[i];
 
-            if (suggestion.type !== currentSuggestionType) {
+            if (suggestion.__typename !== currentSuggestionType) {
                // By default this gets the last suggestion of the different category type, so will need to jump to the first one.
-               nextSuggestionIndex = i - (this.settings.getFieldValue<number>(RESULTS_PER_CATEGORY) - 1);
+               const indexToJumpTo = this.suggestions.findIndex((sugg) => sugg.__typename === suggestion.__typename);
+
+               nextSuggestionIndex = indexToJumpTo;
                break;
             }
 
@@ -219,13 +216,13 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       if (key === 'Tab') {
          event.preventDefault();
 
-         const currentSuggestionType = this.suggestions[this.selectedSuggestionIndex].type;
+         const currentSuggestionType = this.suggestions[this.selectedSuggestionIndex].__typename;
          let nextSuggestionIndex = 0;
 
          for (let i = this.selectedSuggestionIndex; i < this.suggestions.length; i++) {
             const suggestion = this.suggestions[i];
 
-            if (suggestion.type !== currentSuggestionType) {
+            if (suggestion.__typename !== currentSuggestionType) {
                nextSuggestionIndex = i;
                break;
             }
@@ -315,6 +312,7 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
                <input
                   ref={this.searchInput}
                   type="text"
+                  autoComplete="off"
                   id="power-bar-search"
                   placeholder={Spicetify.Platform.Translations['navbar.search']}
                   className={classnames({ 'has-suggestions': this.state.categorizedSuggestions.length > 0 })}

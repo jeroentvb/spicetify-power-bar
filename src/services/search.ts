@@ -1,49 +1,34 @@
-import type { ICategorizedSuggestions, ISearchReturnType, ISuggestion } from '../types/suggestions.model';
+import type { ItemV2, SearchResponse } from '../types/search-modal-results.model';
+import type { ICategorizedSuggestions, ISearchReturnType } from '../types/suggestions.model';
 
-export default async function search(searchQuery: string, limit: string): Promise<ISearchReturnType> {
-   const query = encodeURIComponent(searchQuery.trim());
-   const res: SpotifyApi.SearchResponse = await Spicetify.CosmosAsync.get(`https://api.spotify.com/v1/search?q=${query}&type=album,artist,playlist,track&limit=${limit}&include_external=audio`);
+export default async function search(searchQuery: string, limit: number): Promise<ISearchReturnType> {
+   const res: SearchResponse = await Spicetify.GraphQL.Request(
+      Spicetify.GraphQL.Definitions.searchModalResults,
+      {
+         'limit': 50,
+         'numberOfTopResults': 4 * limit,
+         'offset': 0,
+         'searchTerm': searchQuery.trim() || '',
+         'includeAuthors': false
+      }
+   );
 
-   if (Object.hasOwn(res, 'error')) {
-      const msg = Object.hasOwn(res, 'message') ? (res as any).message : 'an unknown error occurred while searching';
-      Spicetify.showNotification(`Power Bar: ${msg}`, true);
-      console.error('Power bar search error:', res);
-
-      return { categorizedSuggestions: [], suggestions: [] };
-   }
-
-   return parse(res);
+   return parse(res.data.searchV2.topResultsV2.itemsV2);
 }
 
-function parse(res: SpotifyApi.SearchResponse): ISearchReturnType {
-   const categorizedSuggestions = Object.entries(res)
-      .filter(([_key, value]) => value.items.length > 0)
-      .map(([key, value]) => ({ type: key, items: value.items.filter(Boolean) } as ICategorizedSuggestions))
-      .reduce((final, item) => {
-         // TODO surely there's a better way to do this..
-         switch(item.type) {
-            case 'tracks': {
-               final[0] = item;
-               break;
-            }
-            case 'artists': {
-               final[1] = item;
-               break;
-            }
-            case 'albums': {
-               final[2] = item;
-               break;
-            }
-            case 'playlists': {
-               final[3] = item;
-               break;
-            }
-         }
+function parse(res: ItemV2[]): ISearchReturnType {
+   const suggestions = res
+      .map((item) => item.item.data)
+      .filter((item) => ['Artist', 'Playlist', 'Album', 'Track'].includes(item.__typename))
+      .sort((a, b) => {
+         const order = ['Track', 'Artist', 'Album', 'Playlist'];
+         return order.indexOf(a.__typename) - order.indexOf(b.__typename);
+      });
+   const categorizedSuggestions = Object.groupBy(suggestions, (item) => item.__typename);
 
-         return final;
-      }, [] as ICategorizedSuggestions[]);
+   // Ideally we would stop after groupBy, but the rest of the code expects the following format.
+   const finalCategorizedSuggestions: ICategorizedSuggestions[] = Object.entries(categorizedSuggestions)
+      .map(([key, items]) => ({ type: key, items } as ICategorizedSuggestions));
 
-   const suggestions = categorizedSuggestions.flatMap((category) => category.items as ISuggestion[]);
-
-   return { categorizedSuggestions, suggestions };
+   return { categorizedSuggestions: finalCategorizedSuggestions, suggestions };
 }
