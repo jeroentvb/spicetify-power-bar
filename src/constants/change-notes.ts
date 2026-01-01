@@ -1,5 +1,6 @@
 const CHANGE_NOTES = `
-Improved handling of search queries
+* Refactored searching to use Spotify's GraphQL API, instead of they public api (fixes 429 errors).
+* Improved error handling.
 `;
 
 export default CHANGE_NOTES;

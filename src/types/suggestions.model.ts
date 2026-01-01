@@ -1,25 +1,27 @@
+import type { Album, Artist, Playlist, Track } from './search-modal-results.model';
+
 export type ICategorizedSuggestions = TrackSuggestions | ArtistSuggestions | AlbumSuggestions | PlaylistSuggestions;
 
 export type ISuggestion = ICategorizedSuggestions['items'][number];
 
 export interface TrackSuggestions {
    type: 'tracks',
-   items: SpotifyApi.TrackObjectFull[]
+   items: Track[]
 }
 
 interface ArtistSuggestions {
    type: 'artists',
-   items: SpotifyApi.ArtistObjectFull[]
+   items: Artist[]
 }
 
 interface AlbumSuggestions {
    type: 'albums',
-   items: SpotifyApi.AlbumObjectSimplified[]
+   items: Album[]
 }
 
 interface PlaylistSuggestions {
    type: 'playlists',
-   items: SpotifyApi.PlaylistObjectSimplified[]
+   items: Playlist[]
 }
 
 export interface ISearchReturnType {
