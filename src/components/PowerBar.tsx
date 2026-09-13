@@ -21,7 +21,11 @@ interface LocalState {
 }
 
 export default class PowerBar extends React.Component<Record<string, unknown>, LocalState> {
-   readonly isMac = Spicetify.Platform.PlatformData.os_name === 'osx';
+   // Spotify dropped `PlatformData.os_name` in 1.2.97 in favour of `operatingSystem`.
+   // Keep the old lookup as a fallback for older clients.
+   readonly isMac = Spicetify.Platform.operatingSystem
+      ? Spicetify.Platform.operatingSystem === 'macOS'
+      : Spicetify.Platform.PlatformData?.os_name === 'osx';
 
    suggestions: ISuggestion[] = [];
 
@@ -280,20 +284,24 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
             break;
          }
          default: {
-            if (currentKeyCombo.length >= 2) return;
+            const isModifier = MODIFIER_KEYS.some((modifierKey) => code.includes(modifierKey));
+
+            // A finished combo can't be extended, so pressing a modifier starts a new one.
+            // Without this, rebinding silently does nothing until the field is cleared with backspace.
+            const keyCombo = currentKeyCombo.length >= 2 ? [] : currentKeyCombo;
 
             // Force the first key to be a modifier key
-            const isModifier = MODIFIER_KEYS.some((modifierKey) => code.includes(modifierKey));
-            if (currentKeyCombo.length === 0 && !isModifier) return;
+            if (keyCombo.length === 0 && !isModifier) return;
 
-            const keyToSave = currentKeyCombo.length === 0
+            const keyToSave = keyCombo.length === 0
             // Parse modifier keys to keyboard event modifier
             // E.g. code may contain 'AltLeft' which is parsed to 'altkey'. Extra replace needed for control key.
                ? code.toLowerCase().replace(/left|right/ig, 'Key').replace('control', 'ctrl')
                : code;
 
-            this.settings.setFieldValue(KEY_COMBO, [...currentKeyCombo, keyToSave]);
-            e.currentTarget.value = e.currentTarget.value ? `${e.currentTarget.value},${keyToSave}` : keyToSave;
+            const newKeyCombo = [...keyCombo, keyToSave];
+            this.settings.setFieldValue(KEY_COMBO, newKeyCombo);
+            e.currentTarget.value = newKeyCombo.join(',');
          }
       }
    };
