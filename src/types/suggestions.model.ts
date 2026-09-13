@@ -25,6 +25,6 @@ interface PlaylistSuggestions {
 }
 
 export interface ISearchReturnType {
-    categorizedSuggestions: ICategorizedSuggestions[],
-    suggestions: ISuggestion[]
+   categorizedSuggestions: ICategorizedSuggestions[],
+   suggestions: ISuggestion[]
 }

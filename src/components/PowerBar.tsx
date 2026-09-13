@@ -258,6 +258,9 @@ export default class PowerBar extends React.Component<Record<string, unknown>, L
       this.debouncedSearch();
    };
 
+   // Used externally as `powerBar.handleSettingsInput` in services/get-settings.ts,
+   // which the rule can't see from inside the class.
+   // eslint-disable-next-line @eslint-react/no-unused-class-component-members
    handleSettingsInput: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
       e.preventDefault();
       e.stopPropagation();

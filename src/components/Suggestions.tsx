@@ -6,9 +6,9 @@ import type { ICategorizedSuggestions } from '../types/suggestions.model';
 import type { SuggestionClickEmitEvent } from '../types/custom-events.model';
 
 interface ISuggestionsComponentProps {
-    categorizedSuggestions: ICategorizedSuggestions[];
-    onSuggestionClick: SuggestionClickEmitEvent;
-    selectedSuggestionUri: string;
+   categorizedSuggestions: ICategorizedSuggestions[];
+   onSuggestionClick: SuggestionClickEmitEvent;
+   selectedSuggestionUri: string;
 }
 
 export default function Suggestions({ categorizedSuggestions, onSuggestionClick, selectedSuggestionUri }: ISuggestionsComponentProps) {

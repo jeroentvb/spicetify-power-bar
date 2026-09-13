@@ -5,9 +5,9 @@ import type { ISuggestion } from '../types/suggestions.model';
 import type { SuggestionClickEmitEvent } from '../types/custom-events.model';
 
 interface ISuggestionComponentProps {
-    suggestion: ISuggestion;
-    onSuggestionClick: SuggestionClickEmitEvent;
-    selected: boolean;
+   suggestion: ISuggestion;
+   onSuggestionClick: SuggestionClickEmitEvent;
+   selected: boolean;
 }
 
 export default function SuggestionItem({ suggestion, onSuggestionClick, selected }: ISuggestionComponentProps) {

@@ -6,7 +6,7 @@ import CHANGE_NOTES from '../constants/change-notes';
 
 export default function showWhatsNew() {
    const markdown = (
-      // eslint-disable-next-line react/no-children-prop
+      // eslint-disable-next-line @eslint-react/jsx-no-children-prop
       <ReactMarkdown children={CHANGE_NOTES} />
    );
 
